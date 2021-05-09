@@ -2,6 +2,7 @@ window.addEventListener("load", function() {
 
   const state = new KaiState({
     'commodities': {},
+    'currencies': [],
   });
 
   const xhr = function(method, url, data={}, query={}, headers={}) {
@@ -163,13 +164,27 @@ window.addEventListener("load", function() {
         })
         .catch((err) => {
           console.log(err);
+          this.$router.showToast('Error');
         })
         .finally(() => {
           this.$router.hideLoading();
         })
       },
       getCurrencies: function(val) {
-        console.log(val);
+        this.$router.showLoading();
+        xhr('GET', 'http://127.0.0.1:1004/ft/api/v1/currencies', {}, {'group': val})
+        .then((ok) => {
+          this.$state.setState('currencies', ok.response.data);
+          // this.$router.push('commoditiesPrice');
+          console.log(this.$state.getState('currencies'));
+        })
+        .catch((err) => {
+          console.log(err);
+          this.$router.showToast('Error');
+        })
+        .finally(() => {
+          this.$router.hideLoading();
+        })
       }
     },
     softKeyText: { left: 'News', center: 'SELECT', right: 'Exit' },
