@@ -1,5 +1,7 @@
 <div class="kui-flex-wrap">
-  <ul class="kui-list kai-container">
+  <ul class="kui-list kai-container" style="font-size:14px;width:240px;">
+    <li class="homeNav" style="border-bottom: 1px solid #c0c0c0;" @click="getCryptoCurrencies(50)"><pre>Cryptocurrency Market(Top 50)</pre></li>
+    <li class="homeNav" style="border-bottom: 1px solid #c0c0c0;" @click="getCryptoCurrencies(100)"><pre>Cryptocurrency Market(Top 100)</pre></li>
     <li class="homeNav" style="border-bottom: 1px solid #c0c0c0;" @click="getCommodities()"><pre>Commodities Price</pre></li>
     <li class="homeNav" style="border-bottom: 1px solid #c0c0c0;" @click="getCurrencies('Majors')"><pre>Majors Currency</pre></li>
     <li class="homeNav" style="border-bottom: 1px solid #c0c0c0;" @click="getCurrencies('Europe')"><pre>Europe Currency</pre></li>

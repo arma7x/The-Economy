@@ -1,3 +1,26 @@
+function commarize() {
+  // Alter numbers larger than 1k
+  if (this >= 1e3) {
+    var units = ["k", "m", "b", "t"];
+    
+    // Divide to get SI Unit engineering style numbers (1e3,1e6,1e9, etc)
+    let unit = Math.floor(((this).toFixed(0).length - 1) / 3) * 3
+    // Calculate the remainder
+    var num = (this / ('1e'+unit)).toFixed(2)
+    var unitname = units[Math.floor(unit / 3) - 1]
+    
+    // output number remainder + unitname
+    return num + unitname
+  }
+  
+  // return formatted original number
+  return this.toLocaleString()
+}
+
+// Add method to prototype. this allows you to use this function on numbers and strings directly
+Number.prototype.commarize = commarize
+String.prototype.commarize = commarize
+
 window.addEventListener("load", function() {
 
   const state = new KaiState({
@@ -219,6 +242,27 @@ window.addEventListener("load", function() {
     return Kai.createTabNav('currencyTab', '.currencyTabNav', tabs);
   }
 
+  const cryptoCurrencyPage = function(markets) {
+    markets.forEach((value) => {
+      for(var x in value) {
+        var v = parseFloat(value[x]);
+        if (x === 'changePercent24Hr' || x === 'priceUsd' || x === 'vwap24Hr')
+          value[x] = Math.round(v * 100) / 100;
+        else if (v >= 0)
+          value[x] = v.commarize();
+      }
+    });
+    return new Kai({
+      name: 'cryptoCurrencyPage',
+      data: {
+        markets: markets
+      },
+      templateUrl: document.location.origin + '/templates/cryptocurrencies.html',
+      mounted: function() {},
+      unmounted: function() {},
+    });
+  }
+
   const Home = new Kai({
     name: 'home',
     data: {
@@ -229,7 +273,7 @@ window.addEventListener("load", function() {
     components: [],
     templateUrl: document.location.origin + '/templates/home.html',
     mounted: function() {
-      
+      xhr('GET', 'https://malaysiaapi.herokuapp.com');
     },
     unmounted: function() {
       
@@ -240,7 +284,7 @@ window.addEventListener("load", function() {
       },
       getCommodities: function() {
         this.$router.showLoading();
-        xhr('GET', 'http://127.0.0.1:1004/ft/api/v1/commodities')
+        xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/commodities')
         .then((ok) => {
           this.$state.setState('commodities', ok.response.data);
           this.$router.push('commoditiesPriceTab');
@@ -255,7 +299,7 @@ window.addEventListener("load", function() {
       },
       getCurrencies: function(val) {
         this.$router.showLoading();
-        xhr('GET', 'http://127.0.0.1:1004/ft/api/v1/currencies', {}, {'group': val})
+        xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/currencies', {}, {'group': val})
         .then((ok) => {
           this.$router.push(createCurrencyTab(ok.response.data));
         })
@@ -266,18 +310,48 @@ window.addEventListener("load", function() {
         .finally(() => {
           this.$router.hideLoading();
         })
+      },
+      getCryptoCurrencies: function(val) {
+        this.$router.showLoading();
+        xhr('GET', 'https://api.coincap.io/v2/assets', {}, {'limit': parseInt(val)})
+        .then((ok) => {
+          this.$router.push(cryptoCurrencyPage(ok.response.data));
+        })
+        .catch((err) => {
+          console.log(err);
+          this.$router.showToast('Error');
+        })
+        .finally(() => {
+          this.$router.hideLoading();
+        })
       }
     },
-    softKeyText: { left: 'News', center: 'SELECT', right: 'Exit' },
+    softKeyText: { left: 'QOTD', center: 'SELECT', right: 'Exit' },
     softKeyListener: {
-      left: function() {},
+      left: function() {
+        this.$router.showLoading();
+        xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/qotd')
+        .then((ok) => {
+          console.log();
+          this.$router.showDialog('QOTD', `${ok.response.data[0]}<br><b>-${ok.response.data[1]}</b>`, null, 'Close', () => {}, ' ', () => {}, ' ', () => {}, () => {});
+        })
+        .catch((err) => {
+          console.log(err);
+          this.$router.showToast('Error');
+        })
+        .finally(() => {
+          this.$router.hideLoading();
+        })
+      },
       center: function() {
         const listNav = document.querySelectorAll(this.verticalNavClass);
         if (this.verticalNavIndex > -1) {
           listNav[this.verticalNavIndex].click();
         }
       },
-      right: function() {}
+      right: function() {
+        window.close();
+      }
     },
     dPadNavListener: {
       arrowUp: function() {

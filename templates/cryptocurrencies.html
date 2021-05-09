@@ -1,0 +1,38 @@
+<div class="kui-flex-wrap">
+  <ul class="kai-container" style="font-size:14px;width:240px;">
+    {{#markets}}
+      <li style="border-bottom: 1px solid #c0c0c0;padding:2px;">
+        <div style="font-family:monospace, monospace;">
+          <div class="kui-row-center">
+            <span><b>Rank {{ rank }}</b></span>
+            <span><b>{{ name }}({{ symbol }})</b></span>
+          </div>
+          <div class="kui-row-center">
+            <span>Price</span>
+            <span>${{ priceUsd }}</span>
+          </div>
+          <div class="kui-row-center">
+            <span>Market Cap</span>
+            <span>${{ marketCapUsd }}</span>
+          </div>
+          <div class="kui-row-center">
+            <span>VWAP(24Hr)</span>
+            <span>${{ vwap24Hr }}</span>
+          </div>
+          <div class="kui-row-center">
+            <span>Supply </span>
+            <span>{{ supply }}</span>
+          </div>
+          <div class="kui-row-center">
+            <span>Volume(24Hr)</span>
+            <span>${{ volumeUsd24Hr }}</span>
+          </div>
+          <div class="kui-row-center">
+            <span>Change(24Hr) </span>
+            <span>{{ changePercent24Hr }}%</span>
+          </div>
+        </div>
+      </li>
+    {{/markets}}
+  </ul>
+</div>
