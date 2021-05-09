@@ -132,26 +132,109 @@ window.addEventListener("load", function() {
     unmounted: function() {},
   });
 
+  const commoditiesPriceTab = Kai.createTabNav('commoditiesPriceTab', '.commoditiesPriceTabNav', [energyTab, metalsTab, agricultureTab]);
+
+  function makeid() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    for (var i = 0; i < 5; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+  }
+
+  const createCurrenciesComponent = function(id, conversion_rates) {
+    const currency = id.split(' ').join('');
+    const nav = makeid();
+    return new Kai({
+      name: id,
+      data: {
+        title: id,
+        conversion_rates: conversion_rates
+      },
+      verticalNavClass: '.' + nav,
+      template: `
+        <div class="kui-flex-wrap">
+          <ul id="${currency}" class="kui-list kai-container" style="font-size:14px;width:240px;"></ul>
+        </div>`
+      ,
+      mounted: function() {
+        const UL = document.getElementById(`${currency}`);
+        while (UL.firstChild) {
+          UL.removeChild(UL.firstChild);
+        }
+        for (var x in this.data.conversion_rates) {
+          var i = this.data.conversion_rates;
+          const LI = document.createElement("LI");
+          LI.className = nav;
+          LI.style = 'padding:2px; border-bottom: 1px solid #c0c0c0;'
+          const DIV = document.createElement("DIV");
+          DIV.className = 'kui-row-center';
+          DIV.style = 'padding:2px; width:234px;';
+          const pr0 = document.createElement("PRE");
+          pr0.innerHTML = i[x][0];
+          DIV.appendChild(pr0);
+          const pr1 = document.createElement("PRE");
+          pr1.innerHTML = i[x][1];
+          DIV.appendChild(pr1);
+          LI.appendChild(DIV);
+          UL.appendChild(LI);
+        }
+        if (this.verticalNavIndex < 0) {
+          this.navigateListNav(1);
+        } else {
+          this.verticalNavIndex = this.verticalNavIndex - 1;
+          this.navigateListNav(1);
+        }
+        
+      },
+      unmounted: function() {},
+      dPadNavListener: {
+        arrowUp: function() {
+          const nav = document.querySelectorAll(this.verticalNavClass);
+          if (!nav)
+            return
+          if (this.verticalNavIndex === 0)
+            return
+          this.navigateListNav(-1);
+        },
+        arrowDown: function() {
+          const nav = document.querySelectorAll(this.verticalNavClass);
+          if (!nav)
+            return
+          if (this.verticalNavIndex === (nav.length - 1))
+            return
+          this.navigateListNav(1);
+        }
+      }
+    });
+  }
+
+  const createCurrencyTab = function(data) {
+    var tabs = [];
+    for (var x in data) {
+      tabs.push(createCurrenciesComponent(data[x][0][1], data[x].slice(1, data[x].length)));
+    }
+    return Kai.createTabNav('currencyTab', '.currencyTabNav', tabs);
+  }
 
   const Home = new Kai({
-    name: '_CHILD_ 1',
+    name: 'home',
     data: {
-      title: '_CHILD_ 1',
+      title: 'home',
       opts: []
     },
     verticalNavClass: '.homeNav',
     components: [],
     templateUrl: document.location.origin + '/templates/home.html',
     mounted: function() {
-      this.$state.addStateListener('counter', this.methods.listenState);
+      
     },
     unmounted: function() {
-      this.$state.removeStateListener('counter', this.methods.listenState);
+      
     },
     methods: {
-      listenState: function(data) {
-        //this.render()
-      },
       selected: function(val) {
         this.setData({ selected: val.text });
       },
@@ -160,7 +243,7 @@ window.addEventListener("load", function() {
         xhr('GET', 'http://127.0.0.1:1004/ft/api/v1/commodities')
         .then((ok) => {
           this.$state.setState('commodities', ok.response.data);
-          this.$router.push('commoditiesPrice');
+          this.$router.push('commoditiesPriceTab');
         })
         .catch((err) => {
           console.log(err);
@@ -174,9 +257,7 @@ window.addEventListener("load", function() {
         this.$router.showLoading();
         xhr('GET', 'http://127.0.0.1:1004/ft/api/v1/currencies', {}, {'group': val})
         .then((ok) => {
-          this.$state.setState('currencies', ok.response.data);
-          // this.$router.push('commoditiesPrice');
-          console.log(this.$state.getState('currencies'));
+          this.$router.push(createCurrencyTab(ok.response.data));
         })
         .catch((err) => {
           console.log(err);
@@ -202,18 +283,11 @@ window.addEventListener("load", function() {
       arrowUp: function() {
         this.navigateListNav(-1);
       },
-      arrowRight: function() {
-        // this.navigateTabNav(-1);
-      },
       arrowDown: function() {
         this.navigateListNav(1);
       },
-      arrowLeft: function() {
-        // this.navigateTabNav(1);
-      },
     }
   });
-  const commoditiesPriceChild = Kai.createTabNav('_CHILD_ 2', '.child2DemoNav', [energyTab, metalsTab, agricultureTab]);
 
   const router = new KaiRouter({
     title: 'The Economy',
@@ -222,9 +296,9 @@ window.addEventListener("load", function() {
         name: 'Home',
         component: Home
       },
-      'commoditiesPrice' : {
-        name: 'commoditiesPriceChild',
-        component: commoditiesPriceChild
+      'commoditiesPriceTab' : {
+        name: 'commoditiesPriceTab',
+        component: commoditiesPriceTab
       }
     }
   });
@@ -242,7 +316,7 @@ window.addEventListener("load", function() {
   try {
     app.mount('app');
     //setTimeout(function() {
-      //commoditiesPriceChild.mount('app');
+      //commoditiesPriceTab.mount('app');
     //}, 2000);
   } catch(e) {
     console.log(e);
