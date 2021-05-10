@@ -30,7 +30,7 @@ window.addEventListener("load", function() {
 
   const xhr = function(method, url, data={}, query={}, headers={}) {
     return new Promise((resolve, reject) => {
-      var xhttp = new XMLHttpRequest({ mozSystem: true });
+      var xhttp = new XMLHttpRequest();
       var _url = new URL(url);
       for (var y in query) {
         _url.searchParams.set(y, query[y]);

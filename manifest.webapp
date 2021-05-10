@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "name": "The Economy",
   "description": "Get information about commodities price, energy price, metal price, foreign exchange(also known as FX or forex) & cryptocurrencies market value.",
   "launch_path": "/index.html",
@@ -17,13 +17,8 @@
     "name": "arma7x",
     "url": "https://github.com/arma7x"
   },
-  "origin": "app://economy.arma7x.com",
-  "type": "privileged",
-  "permissions": {
-    "systemXHR": {
-      "description": "Required to load remote content"
-    }
-  },
+  "type": "web",
+  "permissions": {},
   "locales": {
     "en-US": {
       "name": "The Economy",
