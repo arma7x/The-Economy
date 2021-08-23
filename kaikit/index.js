@@ -206,6 +206,15 @@ const Kai = (function() {
     }
     this.isMounted = true;
 
+    var tabIndex = document.getElementById('__kai_router__') ? document.getElementById('__kai_router__').querySelectorAll("[tabIndex").length : document.querySelectorAll("[tabIndex").length;
+    const LIS = document.querySelectorAll(this.verticalNavClass);
+    for (var LI in LIS) {
+      if (LIS[LI].setAttribute) {
+        LIS[LI].setAttribute("tabIndex", tabIndex);
+        tabIndex += 1;
+      }
+    }
+
     this.components.forEach((v) => {
       if (v instanceof Kai) {
         if (this.$router) {
@@ -243,13 +252,15 @@ const Kai = (function() {
     this.templateCompiled = DOM.innerHTML;
     for(var i=0;i<DOM.getElementsByTagName('input').length;i++) {
       DOM.getElementsByTagName('input')[i].addEventListener('focus', (evt) => {
-        this.$router.onInputFocus();
+        if (this.$router)
+          this.$router.onInputFocus();
       });
       DOM.getElementsByTagName('input')[i].addEventListener('blur', (evt) => {
-        this.$router.onInputBlur();
+        if (this.$router)
+          this.$router.onInputBlur();
       });
     }
-    if (document.activeElement.tagName === 'INPUT' && this.$router) {
+    if ((document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') && this.$router) {
       this.$router.onInputFocus();
     }
   }
@@ -289,7 +300,7 @@ const Kai = (function() {
     switch(evt.key) {
       case 'Backspace':
       case 'EndCall':
-        if (document.activeElement.tagName === 'INPUT') {
+        if ((document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
           if (document.activeElement.value.length === 0) {
             document.activeElement.blur();
           }
@@ -307,7 +318,7 @@ const Kai = (function() {
         }
         break
       case 'SoftLeft':
-        if (document.activeElement.tagName === 'INPUT') {
+        if ((document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
           if (typeof this.softKeyInputFocusListener.left === 'function') {
             this.softKeyInputFocusListener.left();
           }
@@ -318,7 +329,7 @@ const Kai = (function() {
         }
         break
       case 'SoftRight':
-        if (document.activeElement.tagName === 'INPUT') {
+        if ((document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
           if (typeof this.softKeyInputFocusListener.right === 'function') {
             this.softKeyInputFocusListener.right();
           }
@@ -329,7 +340,7 @@ const Kai = (function() {
         }
         break
       case 'Enter':
-        if (document.activeElement.tagName === 'INPUT') {
+        if ((document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
           if (typeof this.softKeyInputFocusListener.center === 'function') {
             this.softKeyInputFocusListener.center();
           }
@@ -340,7 +351,7 @@ const Kai = (function() {
         }
         break
       case 'ArrowUp':
-        if (document.activeElement.tagName === 'INPUT') {
+        if ((document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
           document.activeElement.blur();
         }
         if (typeof this.dPadNavListener.arrowUp === 'function') {
@@ -348,7 +359,7 @@ const Kai = (function() {
         }
         break
       case 'ArrowRight':
-        if (document.activeElement.tagName === 'INPUT') {
+        if ((document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
           return;
         }
         if (typeof this.dPadNavListener.arrowRight === 'function') {
@@ -356,7 +367,7 @@ const Kai = (function() {
         }
         break
       case 'ArrowDown':
-        if (document.activeElement.tagName === 'INPUT') {
+        if ((document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
           document.activeElement.blur();
         }
         if (typeof this.dPadNavListener.arrowDown === 'function') {
@@ -364,7 +375,7 @@ const Kai = (function() {
         }
         break
       case 'ArrowLeft':
-        if (document.activeElement.tagName === 'INPUT') {
+        if ((document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
           return;
         }
         if (typeof this.dPadNavListener.arrowLeft === 'function') {
@@ -490,17 +501,55 @@ const Kai = (function() {
     if (navClass === 'horizontalNavClass') {
       return targetElement.parentElement.scrollLeft = targetElement.offsetLeft - targetElement.offsetWidth;
     } else if (navClass === 'verticalNavClass') {
+      const container = document.getElementById(this.id);
+      const parent = window.getComputedStyle(container);
+      const marginBottom = window.innerHeight - container.offsetTop - container.offsetHeight;
       if (targetElement.offsetTop > targetElement.parentElement.clientHeight) {
-        var fill = 0;
-        var scroll = targetElement.offsetTop - targetElement.parentElement.clientHeight;
-        const max = targetElement.clientHeight * this[navIndex];
-        const less = targetElement.offsetTop - max;
-        fill = targetElement.clientHeight - less;
-        return targetElement.parentElement.scrollTop = scroll + fill;
+        if ((targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA')) {
+          const LI = getParent(targetElement);
+          if (LI && !isElementInViewport(LI, parseFloat(parent.marginTop), parseFloat(parent.marginBottom))) {
+            var fill = parseFloat(LI.parentElement.clientHeight) - ((parseFloat(LI.offsetTop) - parseFloat(parent.marginTop)) + parseFloat(LI.offsetHeight));
+            fill = fill < 0 ? -(fill) : fill;
+            pad = fill;
+            return LI.parentElement.scrollTop = pad;
+          }
+        } else if (!isElementInViewport(targetElement, parseFloat(container.offsetTop), parseFloat(marginBottom))) {
+          var fill = parseFloat(targetElement.parentElement.clientHeight) - ((parseFloat(targetElement.offsetTop) - parseFloat(container.offsetTop)) + parseFloat(targetElement.offsetHeight));
+          fill = fill < 0 ? -(fill) : fill;
+          pad = fill;
+          return targetElement.parentElement.scrollTop = pad;
+        }
+        return targetElement.parentElement.scrollTop;
       } else {
-        return targetElement.parentElement.scrollTop = 0;
+        var pad = 0;
+        if ((targetElement.tagName === 'INPUT' || targetElement.tagName === 'TEXTAREA')) {
+          return targetElement.parentElement.parentElement.scrollTop = 0;
+        } else if (!isElementInViewport(targetElement, parseFloat(parent.marginTop), parseFloat(parent.marginBottom))) {
+          var fill = parseFloat(targetElement.parentElement.clientHeight) - ((parseFloat(targetElement.offsetTop) - parseFloat(parent.marginTop)) + parseFloat(targetElement.offsetHeight));
+          fill = fill < 0 ? -(fill) : fill;
+          pad = fill;
+        }
+        return targetElement.parentElement.scrollTop = 0 + pad;
       }
     }
+  }
+
+  function getParent(targetElement) {
+    if (targetElement.parentElement == null)
+      return null
+    if (targetElement.parentElement.tagName != 'LI')
+      return getParent(targetElement.parentElement);
+    return targetElement.parentElement;
+  }
+
+  function isElementInViewport(el, marginTop = 0, marginBottom = 0) {
+    var rect = el.getBoundingClientRect();
+    return (
+        rect.top >= 0 + marginTop &&
+        rect.left >= 0 &&
+        rect.bottom <= ((window.innerHeight || document.documentElement.clientHeight) - marginBottom) && /* or $(window).height() */
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */
+    );
   }
 
   return Kai;

@@ -1,7 +1,9 @@
+const APP_VERSION = "1.1.0";
+
 function commarize() {
   // Alter numbers larger than 1k
   if (this >= 1e3) {
-    var units = ["k", "m", "b", "t"];
+    var units = ["K", "M", "B", "T"];
     
     // Divide to get SI Unit engineering style numbers (1e3,1e6,1e9, etc)
     let unit = Math.floor(((this).toFixed(0).length - 1) / 3) * 3
@@ -21,51 +23,59 @@ function commarize() {
 Number.prototype.commarize = commarize
 String.prototype.commarize = commarize
 
+const xhr = function(method, url, data={}, query={}, headers={}) {
+  return new Promise((resolve, reject) => {
+    var xhttp = new XMLHttpRequest();
+    var _url = new URL(url);
+    for (var y in query) {
+      _url.searchParams.set(y, query[y]);
+    }
+    url = _url.origin + _url.pathname + '?' + _url.searchParams.toString();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4) {
+        if (this.status >= 200 && this.status <= 299) {
+          try {
+            const response = JSON.parse(xhttp.response);
+            resolve({ raw: xhttp, response: response});
+          } catch (e) {
+            resolve({ raw: xhttp, response: xhttp.responseText});
+          }
+        } else {
+          try {
+            const response = JSON.parse(xhttp.response);
+            reject({ raw: xhttp, response: response});
+          } catch (e) {
+            reject({ raw: xhttp, response: xhttp.responseText});
+          }
+        }
+      }
+    };
+    xhttp.open(method, url, true);
+    for (var x in headers) {
+      xhttp.setRequestHeader(x, headers[x]);
+    }
+    if (Object.keys(data).length > 0) {
+      xhttp.send(JSON.stringify(data));
+    } else {
+      xhttp.send();
+    }
+  });
+}
+
+function makeid() {
+  var text = "";
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  for (var i = 0; i < 5; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  return text;
+}
+
 window.addEventListener("load", function() {
 
   const state = new KaiState({
     'commodities': {},
     'currencies': [],
   });
-
-  const xhr = function(method, url, data={}, query={}, headers={}) {
-    return new Promise((resolve, reject) => {
-      var xhttp = new XMLHttpRequest();
-      var _url = new URL(url);
-      for (var y in query) {
-        _url.searchParams.set(y, query[y]);
-      }
-      url = _url.origin + _url.pathname + '?' + _url.searchParams.toString();
-      xhttp.onreadystatechange = function() {
-        if (this.readyState == 4) {
-          if (this.status >= 200 && this.status <= 299) {
-            try {
-              const response = JSON.parse(xhttp.response);
-              resolve({ raw: xhttp, response: response});
-            } catch (e) {
-              resolve({ raw: xhttp, response: xhttp.responseText});
-            }
-          } else {
-            try {
-              const response = JSON.parse(xhttp.response);
-              reject({ raw: xhttp, response: response});
-            } catch (e) {
-              reject({ raw: xhttp, response: xhttp.responseText});
-            }
-          }
-        }
-      };
-      xhttp.open(method, url, true);
-      for (var x in headers) {
-        xhttp.setRequestHeader(x, headers[x]);
-      }
-      if (Object.keys(data).length > 0) {
-        xhttp.send(JSON.stringify(data));
-      } else {
-        xhttp.send();
-      }
-    });
-  }
 
   function renderEnergy(UL, data) {
     var i = 0;
@@ -157,16 +167,6 @@ window.addEventListener("load", function() {
 
   const commoditiesPriceTab = Kai.createTabNav('commoditiesPriceTab', '.commoditiesPriceTabNav', [energyTab, metalsTab, agricultureTab]);
 
-  function makeid() {
-    var text = "";
-    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-    for (var i = 0; i < 5; i++)
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-    return text;
-  }
-
   const createCurrenciesComponent = function(id, conversion_rates) {
     const currency = id.split(' ').join('');
     const nav = makeid();
@@ -187,11 +187,12 @@ window.addEventListener("load", function() {
         while (UL.firstChild) {
           UL.removeChild(UL.firstChild);
         }
+        var tabIndex = document.getElementById('__kai_router__') ? document.getElementById('__kai_router__').querySelectorAll("[tabIndex").length : document.querySelectorAll("[tabIndex").length;
         for (var x in this.data.conversion_rates) {
           var i = this.data.conversion_rates;
           const LI = document.createElement("LI");
-          LI.className = nav;
-          LI.style = 'padding:2px; border-bottom: 1px solid #c0c0c0;'
+          LI.setAttribute("class", `${nav} kui-divider`);
+          LI.setAttribute("tabIndex", tabIndex);
           const DIV = document.createElement("DIV");
           DIV.className = 'kui-row-center';
           DIV.style = 'padding:2px; width:234px;';
@@ -203,6 +204,7 @@ window.addEventListener("load", function() {
           DIV.appendChild(pr1);
           LI.appendChild(DIV);
           UL.appendChild(LI);
+          tabIndex += 1;
         }
         if (this.verticalNavIndex < 0) {
           this.navigateListNav(1);
@@ -255,13 +257,151 @@ window.addEventListener("load", function() {
     return new Kai({
       name: 'cryptoCurrencyPage',
       data: {
-        markets: markets
+        idx: 0,
+        current: markets[0],
       },
       templateUrl: document.location.origin + '/templates/cryptocurrencies.html',
-      mounted: function() {},
-      unmounted: function() {},
+      mounted: function() {
+        this.methods.renderCenterText();
+      },
+      methods: {
+        renderCenterText: function() {
+          this.$router.setHeaderTitle(`Rank ${this.data.current.rank} - ${this.data.current.symbol}`);
+        },
+        search: function(keyword) {
+          if (keyword != '') {
+            keyword = keyword.toLowerCase();
+            const idx = markets.findIndex((coin) => {
+              return coin.name.toLowerCase().indexOf(keyword) > -1 || coin.symbol.toLowerCase().indexOf(keyword) > -1;
+            });
+            if (idx === -1) {
+              this.$router.showToast('Not Found');
+            } else {
+              this.setData({ idx: idx, current: markets[idx] });
+              this.methods.renderCenterText();
+            }
+          }
+        },
+        jump: function(idx) {
+          try {
+            const i = JSON.parse(idx) - 1;
+            if (!markets[i]) {
+              this.$router.showToast('Not Found');
+              return
+            }
+            this.setData({ idx: i, current: markets[i] });
+            this.methods.renderCenterText();
+          } catch(err) {
+            this.$router.showToast('Not Found');
+          }
+        },
+        showInputDialog: function(title, placeholder, type, cb = () => {}) {
+          const searchDialog = Kai.createDialog(title, `<div><input id="keyword-input" type="${type}" placeholder="${placeholder}" class="kui-input"/></div>`, null, '', undefined, '', undefined, '', undefined, undefined, this.$router);
+          searchDialog.mounted = () => {
+            setTimeout(() => {
+              setTimeout(() => {
+                this.$router.setSoftKeyText('Cancel' , '', 'Go');
+              }, 103);
+              const KEYWORD = document.getElementById('keyword-input');
+              if (!KEYWORD) {
+                return;
+              }
+              KEYWORD.focus();
+              KEYWORD.value = '';
+              KEYWORD.addEventListener('keydown', (evt) => {
+                switch (evt.key) {
+                  case 'Backspace':
+                  case 'EndCall':
+                    if (document.activeElement.value.length === 0) {
+                      this.$router.hideBottomSheet();
+                      setTimeout(() => {
+                        KEYWORD.blur();
+                        this.methods.renderCenterText();
+                      }, 100);
+                    }
+                    break
+                  case 'SoftRight':
+                    setTimeout(() => {
+                      KEYWORD.blur();
+                      cb(KEYWORD.value);
+                      this.$router.hideBottomSheet();
+                      this.methods.renderCenterText();
+                    }, 100);
+                    break
+                  case 'SoftLeft':
+                    setTimeout(() => {
+                      KEYWORD.blur();
+                      this.$router.hideBottomSheet();
+                      this.methods.renderCenterText();
+                    }, 100);
+                    break
+                }
+              });
+            });
+          }
+          searchDialog.dPadNavListener = {
+            arrowUp: function() {
+              const KEYWORD = document.getElementById('keyword-input');
+              KEYWORD.focus();
+            },
+            arrowDown: function() {
+              const KEYWORD = document.getElementById('keyword-input');
+              KEYWORD.focus();
+            }
+          }
+          this.$router.showBottomSheet(searchDialog);
+        }
+      },
+      softKeyText: { left: 'Help', center: 'SEARCH', right: 'Jump' },
+      softKeyListener: {
+        left: function() {
+           this.$router.showDialog('Info', `Use Arrow Left or Arrow Right to navigate`, null, ' ', () => {}, 'Close', () => {}, ' ', () => {}, () => {});
+        },
+        center: function() {
+          this.methods.showInputDialog('Keyword', 'Name or symbol', 'text', this.methods.search);
+        },
+        right: function() {
+          this.methods.showInputDialog('Jump', 'Rank', 'tel', this.methods.jump);
+        }
+      },
+      unmounted: function() {
+        
+      },
+      dPadNavListener: {
+        arrowLeft: function() {
+          if (this.data.idx === 0)
+            return
+          this.setData({ idx: this.data.idx - 1, current: markets[this.data.idx - 1] });
+          this.methods.renderCenterText();
+        },
+        arrowRight: function() {
+          if (this.data.idx === markets.length - 1)
+            return
+          this.setData({ idx: this.data.idx + 1, current: markets[this.data.idx + 1] });
+          this.methods.renderCenterText();
+        },
+      }
     });
   }
+
+  const changelogs = new Kai({
+    name: 'changelogs',
+    data: {
+      title: 'changelogs'
+    },
+    templateUrl: document.location.origin + '/templates/changelogs.html',
+    mounted: function() {
+      this.$router.setHeaderTitle('Changelogs');
+    },
+    unmounted: function() {},
+    methods: {},
+    softKeyText: { left: '', center: '', right: '' },
+    softKeyListener: {
+      left: function() {},
+      center: function() {},
+      right: function() {}
+    }
+  });
 
   const Home = new Kai({
     name: 'home',
@@ -273,7 +413,14 @@ window.addEventListener("load", function() {
     components: [],
     templateUrl: document.location.origin + '/templates/home.html',
     mounted: function() {
+      this.$router.setHeaderTitle('The Economy');
       xhr('GET', 'https://malaysiaapi.herokuapp.com');
+      const CURRENT_VERSION = window.localStorage.getItem('APP_VERSION');
+      if (APP_VERSION != CURRENT_VERSION) {
+        this.$router.showToast(`Updated to version ${APP_VERSION}`);
+        this.$router.push('changelogs');
+        window.localStorage.setItem('APP_VERSION', APP_VERSION);
+      }
     },
     unmounted: function() {
       
@@ -298,9 +445,11 @@ window.addEventListener("load", function() {
         })
       },
       getCurrencies: function(val) {
+        var vals = val.split('|');
         this.$router.showLoading();
-        xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/currencies', {}, {'group': val})
+        xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/currencies', {}, {'group': vals[0]})
         .then((ok) => {
+          this.$router.setHeaderTitle(vals[1]);
           this.$router.push(createCurrencyTab(ok.response.data));
         })
         .catch((err) => {
@@ -311,9 +460,9 @@ window.addEventListener("load", function() {
           this.$router.hideLoading();
         })
       },
-      getCryptoCurrencies: function(val) {
+      getCryptoCurrencies: function() {
         this.$router.showLoading();
-        xhr('GET', 'https://api.coincap.io/v2/assets', {}, {'limit': parseInt(val)})
+        xhr('GET', 'https://api.coincap.io/v2/assets', {}, {'limit': 100})
         .then((ok) => {
           this.$router.push(cryptoCurrencyPage(ok.response.data));
         })
@@ -326,22 +475,32 @@ window.addEventListener("load", function() {
         })
       }
     },
-    softKeyText: { left: 'QOTD', center: 'SELECT', right: 'Exit' },
+    softKeyText: { left: 'Menu', center: 'SELECT', right: 'Exit' },
     softKeyListener: {
       left: function() {
-        this.$router.showLoading();
-        xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/qotd')
-        .then((ok) => {
-          console.log();
-          this.$router.showDialog('QOTD', `${ok.response.data[0]}<br><b>-${ok.response.data[1]}</b>`, null, 'Close', () => {}, ' ', () => {}, ' ', () => {}, () => {});
-        })
-        .catch((err) => {
-          console.log(err);
-          this.$router.showToast('Error');
-        })
-        .finally(() => {
-          this.$router.hideLoading();
-        })
+        var menu = [
+          {'text': 'QOTD'},
+          {'text': 'Changelogs'},
+        ]
+        this.$router.showOptionMenu('Menu', menu, 'SELECT', (selected) => {
+          if (selected.text === 'QOTD') {
+            this.$router.showLoading();
+            xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/qotd')
+            .then((ok) => {
+              console.log();
+              this.$router.showDialog('QOTD', `${ok.response.data[0]}<br><b>-${ok.response.data[1]}</b>`, null, 'Close', () => {}, ' ', () => {}, ' ', () => {}, () => {});
+            })
+            .catch((err) => {
+              console.log(err);
+              this.$router.showToast('Error');
+            })
+            .finally(() => {
+              this.$router.hideLoading();
+            });
+          } else if (selected.text === 'Changelogs') {
+            this.$router.push('changelogs');
+          }
+        }, () => {});
       },
       center: function() {
         const listNav = document.querySelectorAll(this.verticalNavClass);
@@ -373,6 +532,10 @@ window.addEventListener("load", function() {
       'commoditiesPriceTab' : {
         name: 'commoditiesPriceTab',
         component: commoditiesPriceTab
+      },
+      'changelogs' : {
+        name: 'changelogs',
+        component: changelogs
       }
     }
   });
@@ -415,9 +578,14 @@ window.addEventListener("load", function() {
       onerror: err => console.error(err),
       onready: ad => {
         ad.call('display')
-        setTimeout(() => {
+        ad.on('close', () => {
+          app.$router.hideBottomSheet();
           document.body.style.position = '';
-        }, 1000);
+        });
+        ad.on('display', () => {
+          app.$router.hideBottomSheet();
+          document.body.style.position = '';
+        });
       }
     })
   }
