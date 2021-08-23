@@ -1,25 +1,53 @@
 const APP_VERSION = "1.1.0";
 
+const rankingSet = [
+  { 'key': 'AustralianStockExchange', 'text': 'Australia'},
+  { 'key': 'BrusselsStockExchange', 'text': 'Belgium'},
+  { 'key': 'SaoPauloStockExchange', 'text': 'Brazil'},
+  { 'key': 'TorrontoStockExchange', 'text': 'Canada'},
+  { 'key': 'PragueStockExchange', 'text': 'Czech Republic'},
+  { 'key': 'CopenhagenStockExchange', 'text': 'Denmark'},
+  { 'key': 'HelsinkiStockExchange', 'text': 'Finland'},
+  { 'key': 'ParisStockExchange', 'text': 'France'},
+  { 'key': 'FrankfurtStockExchange', 'text': 'Germany'},
+  { 'key': 'AthensStockExchange', 'text': 'Greece'},
+  { 'key': 'StockExchangeOfHongKongLimited', 'text': 'Hong Kong'},
+  { 'key': 'BudapestStockExchange', 'text': 'Hungary'},
+  { 'key': 'BombayStockExchange', 'text': 'India'},
+  { 'key': 'JakartaStockExchange', 'text': 'Indonesia'},
+  { 'key': 'TelAvivStockExchange', 'text': 'Israel'},
+  { 'key': 'TokyoStockExchange', 'text': 'Japan'},
+  { 'key': 'MexicanStockExchange', 'text': 'Mexico'},
+  { 'key': 'EuronextAmsterdam', 'text': 'Netherlands'},
+  { 'key': 'NewZealandStockExchange', 'text': 'New Zealand'},
+  { 'key': 'OsloStockExchange', 'text': 'Norway'},
+  { 'key': 'LisbonStockExchange', 'text': 'Portugal'},
+  { 'key': 'SingaporeExchangeSecuritiesTrading', 'text': 'Singapore'},
+  { 'key': 'JohannesburgStockExchange', 'text': 'South Africa'},
+  { 'key': 'MercadoContinuoEspanol', 'text': 'Spain'},
+  { 'key': 'StockholmStockExchange', 'text': 'Sweden'},
+  { 'key': 'SwissExchange', 'text': 'Switzerland'},
+  { 'key': 'LondonStockExchange', 'text': 'United Kingdom'},
+  { 'key': 'SP500', 'text': 'United States'},
+];
+
+const rankingType = [
+  { 'key': 'percentgainers', 'text': 'Gainers' },
+  { 'key': 'percentlosers', 'text': 'Losers' },
+  { 'key': 'highestvolume', 'text': 'Movers' }
+];
+
 function commarize() {
-  // Alter numbers larger than 1k
   if (this >= 1e3) {
     var units = ["K", "M", "B", "T"];
-    
-    // Divide to get SI Unit engineering style numbers (1e3,1e6,1e9, etc)
     let unit = Math.floor(((this).toFixed(0).length - 1) / 3) * 3
-    // Calculate the remainder
     var num = (this / ('1e'+unit)).toFixed(2)
     var unitname = units[Math.floor(unit / 3) - 1]
-    
-    // output number remainder + unitname
     return num + unitname
   }
-  
-  // return formatted original number
   return this.toLocaleString()
 }
 
-// Add method to prototype. this allows you to use this function on numbers and strings directly
 Number.prototype.commarize = commarize
 String.prototype.commarize = commarize
 
@@ -242,6 +270,21 @@ window.addEventListener("load", function() {
       tabs.push(createCurrenciesComponent(data[x][0][1], data[x].slice(1, data[x].length)));
     }
     return Kai.createTabNav('currencyTab', '.currencyTabNav', tabs);
+  }
+
+  const equitiesPage = function($router, rankingSet, rankingType) {
+    $router.showLoading();
+    xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/equities', {}, {'rankingType': rankingType, 'rankingSet': rankingSet})
+    .then((ok) => {
+      console.log(ok.response.data);
+    })
+    .catch((err) => {
+      console.log(err);
+      $router.showToast('Error');
+    })
+    .finally(() => {
+      $router.hideLoading();
+    })
   }
 
   const cryptoCurrencyPage = function(markets) {
@@ -473,6 +516,37 @@ window.addEventListener("load", function() {
         .finally(() => {
           this.$router.hideLoading();
         })
+      },
+      getBondAndRates: function() {
+        this.$router.showLoading();
+        xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/bondsandrates')
+        .then((ok) => {
+          console.log(ok.response.data);
+        })
+        .catch((err) => {
+          console.log(err);
+          this.$router.showToast('Error');
+        })
+        .finally(() => {
+          this.$router.hideLoading();
+        })
+      },
+      getGovBondsSpreads: function() {
+        this.$router.showLoading();
+        xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/governmentbondsspreads')
+        .then((ok) => {
+          console.log(ok.response.data);
+        })
+        .catch((err) => {
+          console.log(err);
+          this.$router.showToast('Error');
+        })
+        .finally(() => {
+          this.$router.hideLoading();
+        })
+      },
+      gotoEquities: function() {
+        equitiesPage(this.$router, 'SP500', 'percentgainers');
       }
     },
     softKeyText: { left: 'Menu', center: 'SELECT', right: 'Exit' },
