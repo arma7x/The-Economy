@@ -588,9 +588,14 @@ window.addEventListener("load", function() {
     },
     dPadNavListener: {
       arrowUp: function() {
+        if (this.verticalNavIndex <= 0)
+          return
         this.navigateListNav(-1);
       },
       arrowDown: function() {
+        const listNav = document.querySelectorAll(this.verticalNavClass);
+        if (this.verticalNavIndex === listNav.length - 1)
+          return
         this.navigateListNav(1);
       },
     }
