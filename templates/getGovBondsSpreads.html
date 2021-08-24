@@ -1,0 +1,13 @@
+<div class="kui-flex-wrap">
+  <ul class="kui-list kai-container">
+    {{#data}}
+    <li class="gbsNav kui-divider">
+      <div style="width:100%;">
+        <div class="kui-row-center"><h5>{{ country }}</h5><small>Latest Yield: <b>{{ latest_yield }}</b></small></div>
+        <div style="margin: 0px"><small>Spread vs bund: <b>{{ sp_vs_bu }}</b></small></div>
+        <div style="margin: 0px"><small>Spread vs T-notes: <b>{{ sp_vs_tn }}</b></small></div>
+      </div>
+    </li>
+    {{/data}}
+  </ul>
+</div>

@@ -100,9 +100,36 @@ function makeid() {
 
 window.addEventListener("load", function() {
 
+  const dummy = new Kai({
+    name: '_dummy_',
+    data: {
+      title: '_dummy_'
+    },
+    verticalNavClass: '.dummyNav',
+    templateUrl: document.location.origin + '/templates/dummy.html',
+    mounted: function() {},
+    unmounted: function() {},
+    methods: {},
+    softKeyText: { left: 'L2', center: 'C2', right: 'R2' },
+    softKeyListener: {
+      left: function() {},
+      center: function() {},
+      right: function() {}
+    },
+    dPadNavListener: {
+      arrowUp: function() {
+        this.navigateListNav(-1);
+      },
+      arrowDown: function() {
+        this.navigateListNav(1);
+      }
+    }
+  });
+
   const state = new KaiState({
     'commodities': {},
     'currencies': [],
+    'bondandrates': {},
   });
 
   function renderEnergy(UL, data) {
@@ -195,6 +222,8 @@ window.addEventListener("load", function() {
 
   const commoditiesPriceTab = Kai.createTabNav('commoditiesPriceTab', '.commoditiesPriceTabNav', [energyTab, metalsTab, agricultureTab]);
 
+  const bondAndRatesTab = Kai.createTabNav('bondAndRatesTab', '.bondAndRatesTabNav', [energyTab, metalsTab, agricultureTab]);
+
   const createCurrenciesComponent = function(id, conversion_rates) {
     const currency = id.split(' ').join('');
     const nav = makeid();
@@ -285,6 +314,49 @@ window.addEventListener("load", function() {
     .finally(() => {
       $router.hideLoading();
     })
+  }
+
+  const getGovBondsSpreadsPage = function($router, data) {
+    data.forEach((d) => {
+      d.country = d['Country']
+      d.latest_yield = d['Latest yield']
+      d.sp_vs_bu = d['Spread vs bund']
+      d.sp_vs_tn = d['Spread vs T-notes']
+    });
+    $router.push(
+      new Kai({
+        name: 'getGovBondsSpreads',
+        data: {
+          title: 'getGovBondsSpreads',
+          data: data,
+        },
+        verticalNavClass: '.gbsNav',
+        templateUrl: document.location.origin + '/templates/getGovBondsSpreads.html',
+        mounted: function() {
+          $router.setHeaderTitle('Government Bonds Spreads');
+        },
+        unmounted: function() {},
+        methods: {},
+        softKeyText: { left: '', center: '', right: '' },
+        softKeyListener: {
+          left: function() {},
+          center: function() {},
+          right: function() {}
+        },
+        dPadNavListener: {
+          arrowUp: function() {
+            if (this.verticalNavIndex <= 0)
+              return
+            this.navigateListNav(-1);
+          },
+          arrowDown: function() {
+            if (this.verticalNavIndex === data.length - 1)
+              return
+            this.navigateListNav(1);
+          }
+        }
+      })
+    );
   }
 
   const cryptoCurrencyPage = function(markets) {
@@ -477,6 +549,7 @@ window.addEventListener("load", function() {
         xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/commodities')
         .then((ok) => {
           this.$state.setState('commodities', ok.response.data);
+          this.$router.setHeaderTitle('Commodities Price');
           this.$router.push('commoditiesPriceTab');
         })
         .catch((err) => {
@@ -521,7 +594,9 @@ window.addEventListener("load", function() {
         this.$router.showLoading();
         xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/bondsandrates')
         .then((ok) => {
-          console.log(ok.response.data);
+          this.$state.setState('bondandrates', ok.response.data);
+          this.$router.setHeaderTitle('Bond And Rates');
+          this.$router.push('bondAndRatesTab');
         })
         .catch((err) => {
           console.log(err);
@@ -535,7 +610,7 @@ window.addEventListener("load", function() {
         this.$router.showLoading();
         xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/governmentbondsspreads')
         .then((ok) => {
-          console.log(ok.response.data);
+          getGovBondsSpreadsPage(this.$router, ok.response.data);
         })
         .catch((err) => {
           console.log(err);
@@ -611,6 +686,10 @@ window.addEventListener("load", function() {
       'commoditiesPriceTab' : {
         name: 'commoditiesPriceTab',
         component: commoditiesPriceTab
+      },
+      'bondAndRatesTab' : {
+        name: 'bondAndRatesTab',
+        component: bondAndRatesTab
       },
       'changelogs' : {
         name: 'changelogs',

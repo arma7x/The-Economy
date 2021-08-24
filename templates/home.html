@@ -1,9 +1,13 @@
 <div class="kui-flex-wrap">
   <ul class="kui-list kai-container" style="font-size:14px;width:240px;">
-    <li class="homeNav kui-divider" @click="getCryptoCurrencies()"><pre>Cryptocurrency Market(1 - 100)</pre></li>
+    <li class="homeNav kui-divider" @click="getCryptoCurrencies()">
+      <pre>Cryptocurrency Market<br><small>(Top 1 - 100)</small></pre>
+    </li>
     <li class="homeNav kui-divider" @click="getCommodities()"><pre>Commodities Price</pre></li>
     <li class="homeNav kui-divider" @click="getBondAndRates()"><pre>Bond and Rates</pre></li>
-    <li class="homeNav kui-divider" @click="getGovBondsSpreads()"><pre>Government Bonds Spreads</pre></li>
+    <li class="homeNav kui-divider" @click="getGovBondsSpreads()">
+      <pre>Government Bonds Spreads<br><small>10 year government bond spreads</small></pre>
+    </li>
     <li class="homeNav kui-divider" @click="gotoEquities()"><pre>Equities</pre></li>
     <li class="homeNav kui-divider" @click="getCurrencies('Majors|Majors Currency')"><pre>Majors Currency</pre></li>
     <li class="homeNav kui-divider" @click="getCurrencies('Europe|Europe Currency')"><pre>Europe Currency</pre></li>
