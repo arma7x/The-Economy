@@ -222,7 +222,170 @@ window.addEventListener("load", function() {
 
   const commoditiesPriceTab = Kai.createTabNav('commoditiesPriceTab', '.commoditiesPriceTabNav', [energyTab, metalsTab, agricultureTab]);
 
-  const bondAndRatesTab = Kai.createTabNav('bondAndRatesTab', '.bondAndRatesTabNav', [energyTab, metalsTab, agricultureTab]);
+  const interbankratesovernightTab = new Kai({
+    name: 'Interbank Rates(overnight)',
+    data: {
+      title: 'interbankratesovernight',
+      rates: []
+    },
+    verticalNavClass: '.rateNav',
+    template: `
+      <div class="kui-flex-wrap">
+      <ul class="kui-list kai-container">
+        {{#rates}}
+        <li class="rateNav kui-divider">
+          <div style="width:100%;">
+            <div><h5>{{ name }}</h5></div>
+            <div class="kui-row-center" style="width:100%;margin:2px 0px;font-size:87%;">
+              <small>Latest: <b>{{ latest }}</b></small>
+              <small style="text-align:right;">Today's change: <b>{{ today }}</b></small>
+            </div>
+            <div class="kui-row-center" style="width:100%;margin:2px 0px;font-size:87%;">
+              <small>1 week ago: <b>{{ week }}</b></small>
+              <small style="text-align:right;">1 month ago: <b>{{ week }}</b></small>
+            </div>
+          </div>
+        </li>
+        {{/rates}}
+      </ul>
+    </div>
+    `,
+    mounted: function() {
+      const rates = [];
+      this.$state.getState('bondandrates')['interbankratesovernight'].forEach((rate) => {
+        rate.name = rate['Interbank lender']
+        rate.latest = rate['Latest']
+        rate.today = rate["Today's change"]
+        rate.week = rate['1 week ago']
+        rate.month = rate['1 month ago']
+        rates.push(rate);
+      });
+      this.setData({rates: rates});
+    },
+    unmounted: function() {},
+    dPadNavListener: {
+      arrowUp: function() {
+        if (this.verticalNavIndex <= 0)
+          return
+        this.navigateListNav(-1);
+      },
+      arrowDown: function() {
+        if (this.verticalNavIndex === this.data.rates.length - 1)
+          return
+        this.navigateListNav(1);
+      }
+    }
+  });
+
+  const officialinterestratesTab = new Kai({
+    name: 'Official Interest Rates',
+    data: {
+      title: 'officialinterestrates',
+      rates: []
+    },
+    verticalNavClass: '.rateNav',
+    template: `
+      <div class="kui-flex-wrap">
+      <ul class="kui-list kai-container">
+        {{#rates}}
+        <li class="rateNav kui-divider">
+          <div style="width:100%;">
+            <div><h5>{{ name }}</h5></div>
+            <div class="kui-row-center" style="width:100%;margin:2px 0px;font-size:87%;">
+              <small>Current: <b>{{ current }}</b></small>
+              <small style="text-align:right;">Previous Rate: <b>{{ previous }}</b></small>
+            </div>
+            <div class="kui-row-center" style="width:100%;margin:2px 0px;font-size:87%;">
+              <small>Since: <b>{{ since }}</b></small>
+            </div>
+          </div>
+        </li>
+        {{/rates}}
+      </ul>
+    </div>
+    `,
+    mounted: function() {
+      const rates = [];
+      this.$state.getState('bondandrates')['officialinterestrates'].forEach((rate) => {
+        rate.name = rate['Lender']
+        rate.current = rate['Current']
+        rate.previous = rate["Previous rate"]
+        rate.since = rate['Since date']
+        rates.push(rate);
+      });
+      this.setData({rates: rates});
+    },
+    unmounted: function() {},
+    dPadNavListener: {
+      arrowUp: function() {
+        if (this.verticalNavIndex <= 0)
+          return
+        this.navigateListNav(-1);
+      },
+      arrowDown: function() {
+        if (this.verticalNavIndex === this.data.rates.length - 1)
+          return
+        this.navigateListNav(1);
+      }
+    }
+  });
+
+  const marketratesTab = new Kai({
+    name: 'Market Rates',
+    data: {
+      title: 'marketrates',
+      rates: []
+    },
+    verticalNavClass: '.rateNav',
+    template: `
+      <div class="kui-flex-wrap">
+      <ul class="kui-list kai-container">
+        {{#rates}}
+        <li class="rateNav kui-divider">
+          <div style="width:100%;">
+            <div><h5>{{ name }} Bonds</h5></div>
+            <div class="kui-row-center" style="width:100%;margin:2px 0px;font-size:87%;">
+              <small>Latest: <b>{{ latest }}</b></small>
+              <small style="text-align:right;">Today's change: <b>{{ today }}</b></small>
+            </div>
+            <div class="kui-row-center" style="width:100%;margin:2px 0px;font-size:87%;">
+              <small>1 week ago: <b>{{ week }}</b></small>
+              <small style="text-align:right;">1 month ago: <b>{{ week }}</b></small>
+            </div>
+          </div>
+        </li>
+        {{/rates}}
+      </ul>
+    </div>
+    `,
+    mounted: function() {
+      const rates = [];
+      this.$state.getState('bondandrates')['marketrates'].forEach((rate) => {
+        rate.name = rate['Bonds']
+        rate.latest = rate['Latest']
+        rate.today = rate["Today's change"]
+        rate.week = rate['1 week ago']
+        rate.month = rate['1 month ago']
+        rates.push(rate);
+      });
+      this.setData({rates: rates});
+    },
+    unmounted: function() {},
+    dPadNavListener: {
+      arrowUp: function() {
+        if (this.verticalNavIndex <= 0)
+          return
+        this.navigateListNav(-1);
+      },
+      arrowDown: function() {
+        if (this.verticalNavIndex === this.data.rates.length - 1)
+          return
+        this.navigateListNav(1);
+      }
+    }
+  });
+
+  const bondAndRatesTab = Kai.createTabNav('bondAndRatesTab', '.bondAndRatesTabNav', [interbankratesovernightTab, officialinterestratesTab, marketratesTab]);
 
   const createCurrenciesComponent = function(id, conversion_rates) {
     const currency = id.split(' ').join('');
@@ -301,11 +464,68 @@ window.addEventListener("load", function() {
     return Kai.createTabNav('currencyTab', '.currencyTabNav', tabs);
   }
 
-  const equitiesPage = function($router, rankingSet, rankingType) {
+  const equitiesPage = function($router, rankingSet, rankingType, title) {
     $router.showLoading();
     xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/equities', {}, {'rankingType': rankingType, 'rankingSet': rankingSet})
     .then((ok) => {
-      console.log(ok.response.data);
+      const data = []
+      ok.response.data.forEach((i) => {
+        i._last = `${i.Last[1]} ${i.Last[0]}`;
+        const _f = i.Change[0];
+        i._change = _f + i.Change.slice(1).split(_f).join(` ${_f}`);
+        i._listing = `${i.Listing[0]}(${i.Listing[1]})`
+        data.push(i);
+      });
+      $router.push(
+        new Kai({
+          name: 'equities',
+          data: {
+            title: 'equities',
+            data: data,
+          },
+          verticalNavClass: '.equityNav',
+          template: `
+            <div class="kui-flex-wrap">
+              <ul class="kui-list kai-container">
+                {{#data}}
+                <li class="equityNav kui-divider">
+                  <div style="width:100%;">
+                    <div><h5>{{ _listing }}</h5></div>
+                    <div style="margin: 0px 0 2px 0px;"><small>Change: <b>{{ _change }}</b></small></div>
+                    <div class="kui-row-center" style="margin: 0px">
+                      <small>Last: <b>{{ _last }}</b></small>
+                      <small>Volume: <b>{{ Volume }}</b></small>
+                    </div>
+                  </div>
+                </li>
+                {{/data}}
+              </ul>
+            </div>`,
+          mounted: function() {
+            $router.setHeaderTitle(title);
+          },
+          unmounted: function() {},
+          methods: {},
+          softKeyText: { left: '', center: '', right: '' },
+          softKeyListener: {
+            left: function() {},
+            center: function() {},
+            right: function() {}
+          },
+          dPadNavListener: {
+            arrowUp: function() {
+              if (this.verticalNavIndex <= 0)
+                return
+              this.navigateListNav(-1);
+            },
+            arrowDown: function() {
+              if (this.verticalNavIndex === data.length - 1)
+                return
+              this.navigateListNav(1);
+            }
+          }
+        })
+      );
     })
     .catch((err) => {
       console.log(err);
@@ -621,7 +841,13 @@ window.addEventListener("load", function() {
         })
       },
       gotoEquities: function() {
-        equitiesPage(this.$router, 'SP500', 'percentgainers');
+        this.$router.showOptionMenu('Market', rankingSet, 'SELECT', (selected) => {
+          setTimeout(() => {
+            this.$router.showOptionMenu('Type', rankingType, 'SELECT', (selected2) => {
+              equitiesPage(this.$router, selected.key, selected2.key, `${selected.text} - ${selected2.text}`);
+            }, undefined, -1);
+          }, 100);
+        }, undefined, -1);
       }
     },
     softKeyText: { left: 'Menu', center: 'SELECT', right: 'Exit' },
@@ -636,7 +862,6 @@ window.addEventListener("load", function() {
             this.$router.showLoading();
             xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/qotd')
             .then((ok) => {
-              console.log();
               this.$router.showDialog('QOTD', `${ok.response.data[0]}<br><b>-${ok.response.data[1]}</b>`, null, 'Close', () => {}, ' ', () => {}, ' ', () => {}, () => {});
             })
             .catch((err) => {
