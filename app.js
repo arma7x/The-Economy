@@ -1,4 +1,4 @@
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.1.1";
 
 const rankingSet = [
   { 'key': 'AustralianStockExchange', 'text': 'Australia'},
@@ -175,6 +175,9 @@ window.addEventListener("load", function() {
     },
     templateUrl: document.location.origin + '/templates/tabs/energyTab.html',
     mounted: function() {
+      const t = document.getElementById('__kai_tab__');
+      t.classList.remove('kui-tab-h-88');
+      t.classList.add('kui-tab-h-60');
       const UL = document.getElementById('energy-tab');
       while(UL.firstChild) {
         UL.removeChild(UL.firstChild);
@@ -193,6 +196,9 @@ window.addEventListener("load", function() {
     },
     templateUrl: document.location.origin + '/templates/tabs/metalsTab.html',
     mounted: function() {
+      const t = document.getElementById('__kai_tab__');
+      t.classList.remove('kui-tab-h-88');
+      t.classList.add('kui-tab-h-60');
       const UL = document.getElementById('metals-tab');
       while(UL.firstChild) {
         UL.removeChild(UL.firstChild);
@@ -210,6 +216,9 @@ window.addEventListener("load", function() {
     },
     templateUrl: document.location.origin + '/templates/tabs/agricultureTab.html',
     mounted: function() {
+      const t = document.getElementById('__kai_tab__');
+      t.classList.remove('kui-tab-h-88');
+      t.classList.add('kui-tab-h-60');
       const UL = document.getElementById('agriculture-tab');
       while(UL.firstChild) {
         UL.removeChild(UL.firstChild);
@@ -231,6 +240,7 @@ window.addEventListener("load", function() {
     verticalNavClass: '.rateNav',
     template: `
       <div class="kui-flex-wrap">
+      <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
       <ul class="kui-list kai-container">
         {{#rates}}
         <li class="rateNav kui-divider">
@@ -251,6 +261,11 @@ window.addEventListener("load", function() {
     </div>
     `,
     mounted: function() {
+      setTimeout(() => {
+        const t = document.getElementById('__kai_tab__');
+        t.classList.remove('kui-tab-h-88');
+        t.classList.add('kui-tab-h-60');
+      }, 100);
       const rates = [];
       this.$state.getState('bondandrates')['interbankratesovernight'].forEach((rate) => {
         rate.name = rate['Interbank lender']
@@ -286,6 +301,7 @@ window.addEventListener("load", function() {
     verticalNavClass: '.rateNav',
     template: `
       <div class="kui-flex-wrap">
+      <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
       <ul class="kui-list kai-container">
         {{#rates}}
         <li class="rateNav kui-divider">
@@ -305,6 +321,11 @@ window.addEventListener("load", function() {
     </div>
     `,
     mounted: function() {
+      setTimeout(() => {
+        const t = document.getElementById('__kai_tab__');
+        t.classList.remove('kui-tab-h-88');
+        t.classList.add('kui-tab-h-60');
+      }, 100);
       const rates = [];
       this.$state.getState('bondandrates')['officialinterestrates'].forEach((rate) => {
         rate.name = rate['Lender']
@@ -339,6 +360,7 @@ window.addEventListener("load", function() {
     verticalNavClass: '.rateNav',
     template: `
       <div class="kui-flex-wrap">
+      <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
       <ul class="kui-list kai-container">
         {{#rates}}
         <li class="rateNav kui-divider">
@@ -359,6 +381,11 @@ window.addEventListener("load", function() {
     </div>
     `,
     mounted: function() {
+      setTimeout(() => {
+        const t = document.getElementById('__kai_tab__');
+        t.classList.remove('kui-tab-h-88');
+        t.classList.add('kui-tab-h-60');
+      }, 100);
       const rates = [];
       this.$state.getState('bondandrates')['marketrates'].forEach((rate) => {
         rate.name = rate['Bonds']
@@ -399,10 +426,16 @@ window.addEventListener("load", function() {
       verticalNavClass: '.' + nav,
       template: `
         <div class="kui-flex-wrap">
+          <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
           <ul id="${currency}" class="kui-list kai-container" style="font-size:14px;width:240px;"></ul>
         </div>`
       ,
       mounted: function() {
+        setTimeout(() => {
+          const t = document.getElementById('__kai_tab__');
+          t.classList.remove('kui-tab-h-88');
+          t.classList.add('kui-tab-h-60');
+        }, 100);
         const UL = document.getElementById(`${currency}`);
         while (UL.firstChild) {
           UL.removeChild(UL.firstChild);
@@ -486,6 +519,7 @@ window.addEventListener("load", function() {
           verticalNavClass: '.equityNav',
           template: `
             <div class="kui-flex-wrap">
+              <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
               <ul class="kui-list kai-container">
                 {{#data}}
                 <li class="equityNav kui-divider">
@@ -503,6 +537,11 @@ window.addEventListener("load", function() {
             </div>`,
           mounted: function() {
             $router.setHeaderTitle(title);
+            setTimeout(() => {
+              const t = document.getElementById('__kai_tab__');
+              t.classList.remove('kui-tab-h-88');
+              t.classList.add('kui-tab-h-60');
+            }, 100);
           },
           unmounted: function() {},
           methods: {},
