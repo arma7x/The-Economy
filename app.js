@@ -1,4 +1,4 @@
-const APP_VERSION = "1.1.1";
+const APP_VERSION = "1.2.0";
 
 const rankingSet = [
   { 'key': 'AustralianStockExchange', 'text': 'Australia'},
@@ -98,6 +98,15 @@ function makeid() {
   return text;
 }
 
+const exchangerate = {
+  getSymbols: () => {
+    return xhr('GET', 'https://api.exchangerate.host/symbols');
+  },
+  convert: (from, to) => {
+    return xhr('GET', 'https://api.exchangerate.host/convert', {}, {from, to});
+  }
+}
+
 window.addEventListener("load", function() {
 
   const dummy = new Kai({
@@ -130,6 +139,152 @@ window.addEventListener("load", function() {
     'commodities': {},
     'currencies': [],
     'bondandrates': {},
+    'symbols': {},
+  });
+
+  var TIMEOUT = null;
+
+  const convert = new Kai({
+    name: 'convert',
+    data: {
+      title: 'convert',
+      amount: '',
+      from_unit: '',
+      to_unit: '',
+    },
+    verticalNavClass: '.convertNav',
+    templateUrl: document.location.origin + '/templates/convert.html',
+    mounted: function() {
+      this.$router.setHeaderTitle('Currency Converter');
+      document.getElementById("amount").addEventListener("input", this.methods.amountListener);
+      document.getElementById("from_unit").addEventListener("input", this.methods.fromListener);
+      document.getElementById("to_unit").addEventListener("input", this.methods.fromListener);
+    },
+    unmounted: function() {
+      document.getElementById("amount").removeEventListener("input", this.methods.amountListener);
+      document.getElementById("from_unit").removeEventListener("input", this.methods.fromListener);
+      document.getElementById("to_unit").removeEventListener("input", this.methods.fromListener);
+    },
+    methods: {
+      submit: function() {
+        if (this.data.from_unit == '' || this.data.to_unit == '') {
+          this.$router.showDialog('Alert', 'Please select a valid From/To unit', null, 'Close', () => {}, ' ', () => {}, ' ', null, () => {});
+          return;
+        }
+        this.$router.showLoading();
+        exchangerate.convert(this.data.from_unit, this.data.to_unit)
+        .then(data => {
+          var amount = 1;
+          try {
+            amount = JSON.parse(this.data.amount);
+          } catch(e) {}
+          const text = `<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;"><span>${data.response.query.from} ${parseFloat(amount).toFixed(4)}</span><span>&#8652;</span><span>${data.response.query.to} ${parseFloat(amount * data.response.result).toFixed(4)}</span></div>`;
+          this.$router.showDialog(`Result as ${data.response.date}`, text, null, 'Close', () => {}, ' ', () => {}, ' ', null, () => {});
+        })
+        .catch(err => {
+          this.$router.showToast('Error');
+        })
+        .finally(() => {
+          this.$router.hideLoading();
+        })
+      },
+      amountListener: function(evt) {
+        this.data.amount = evt.target.value;
+      },
+      search: function(value) {
+        var list = [];
+        for (var i in this.$state.getState('symbols')) {
+          const n = this.$state.getState('symbols')[i];
+          if (n.description.toLowerCase().indexOf(value) > -1 || n.code.toLowerCase().indexOf(value) > -1) {
+            n.text = n.code;
+            n.subtext = n.description;
+            list.push(n);
+          }
+        }
+        return list;
+      },
+      fromListener: function(evt) {
+        if (TIMEOUT) {
+          clearTimeout(TIMEOUT);
+          TIMEOUT = null;
+        }
+        TIMEOUT = setTimeout(() => {
+          TIMEOUT = null;
+          if (this.$router.stack[this.$router.stack.length - 1].name !== 'convert')
+            return;
+          var value = evt.target.value;
+          if (value != '' || value != null) {
+            value = value.toLowerCase();
+            var list = this.methods.search(value);
+            if (list.length <= 0) {
+              if (evt.target.id === 'from_unit')
+                this.data.from_unit = '';
+              else if (evt.target.id === 'to_unit')
+                this.data.to_unit = '';
+              this.$router.showDialog('Alert', 'Not Found', null, 'Close', () => {}, ' ', () => {}, ' ', null, () => {});
+              return;
+            }
+            this.$router.showOptionMenu('Currency Unit', list, 'SELECT', (selected) => {
+              evt.target.value = selected.description;
+              if (evt.target.id === 'from_unit')
+                this.data.from_unit = selected.code;
+              else if (evt.target.id === 'to_unit')
+                this.data.to_unit = selected.code;
+            }, () => {}, -1);
+          }
+        }, 1000);
+      },
+    },
+    softKeyText: { left: '', center: '', right: '' },
+    softKeyListener: {
+      left: function() {},
+      center: function() {
+        const listNav = document.querySelectorAll(this.verticalNavClass);
+        if (this.verticalNavIndex > -1) {
+          if (listNav[this.verticalNavIndex]) {
+            listNav[this.verticalNavIndex].click();
+          }
+        }
+      },
+      right: function() {}
+    },
+    softKeyInputFocusText: { left: 'Clear', center: 'NEXT', right: 'Back' },
+    softKeyInputFocusListener: {
+      left: function() {
+        const dom = document.activeElement;
+        switch (dom.id) {
+          case 'amount':
+            document.getElementById("amount").value = '';
+            this.data.amount = '';
+            break;
+          case 'from_unit':
+            document.getElementById("from_unit").value = '';
+            this.data.from_unit = '';
+            break;
+          case 'to_unit':
+            document.getElementById("to_unit").value = '';
+            this.data.to_unit = '';
+            break;
+        }
+        if (dom)
+          dom.value = '';
+      },
+      center: function() {
+        this.navigateListNav(1);
+      },
+      right: function() {
+        document.activeElement.blur();
+        this.$router.pop();
+      }
+    },
+    dPadNavListener: {
+      arrowUp: function() {
+        this.navigateListNav(-1);
+      },
+      arrowDown: function() {
+        this.navigateListNav(1);
+      }
+    }
   });
 
   function renderEnergy(UL, data) {
@@ -787,6 +942,12 @@ window.addEventListener("load", function() {
     components: [],
     templateUrl: document.location.origin + '/templates/home.html',
     mounted: function() {
+      exchangerate.getSymbols()
+      .then(data => {
+        try {
+          this.$state.setState('symbols', data.response.symbols);
+        } catch (e) {}
+      }).catch(e=>{});
       this.$router.setHeaderTitle('The Economy');
       xhr('GET', 'https://malaysiaapi.herokuapp.com');
       const CURRENT_VERSION = window.localStorage.getItem('APP_VERSION');
@@ -894,6 +1055,7 @@ window.addEventListener("load", function() {
       left: function() {
         var menu = [
           {'text': 'QOTD'},
+          {'text': 'Currency Converter'},
           {'text': 'Changelogs'},
         ]
         this.$router.showOptionMenu('Menu', menu, 'SELECT', (selected) => {
@@ -912,6 +1074,8 @@ window.addEventListener("load", function() {
             });
           } else if (selected.text === 'Changelogs') {
             this.$router.push('changelogs');
+          } else if (selected.text == 'Currency Converter') {
+            this.$router.push('convert');
           }
         }, () => {});
       },
@@ -954,6 +1118,10 @@ window.addEventListener("load", function() {
       'bondAndRatesTab' : {
         name: 'bondAndRatesTab',
         component: bondAndRatesTab
+      },
+      'convert' : {
+        name: 'convert',
+        component: convert
       },
       'changelogs' : {
         name: 'changelogs',
