@@ -1,7 +1,7 @@
 {
   "version": "1.2.0",
   "name": "The Economy",
-  "description": "Get information about commodities price, energy price, metal price, foreign exchange(also known as FX or forex) & cryptocurrencies market value.",
+  "description": "Get information about commodities price, energy price, metal price, foreign exchange & cryptocurrencies market value. It also provide currency converter",
   "launch_path": "/index.html",
   "theme": "#873eff",
   "theme_color": "#873eff",
@@ -22,8 +22,8 @@
   "locales": {
     "en-US": {
       "name": "The Economy",
-      "subtitle": "Get information about commodities price, energy price, metal price, foreign exchange(also known as FX or forex) & cryptocurrencies market value.",
-      "description": "Get information about commodities price, energy price, metal price, foreign exchange(also known as FX or forex) & cryptocurrencies market value."
+      "subtitle": "Get information about commodities price, energy price, metal price, foreign exchange & cryptocurrencies market value. It also provide currency converter",
+      "description": "Get information about commodities price, energy price, metal price, foreign exchange & cryptocurrencies market value. It also provide currency converter"
     }
   },
   "default_locale": "en-US"
