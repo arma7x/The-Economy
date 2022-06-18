@@ -1,4 +1,4 @@
-const APP_VERSION = "1.2.0";
+const APP_VERSION = "1.3.0";
 
 const rankingSet = [
   { 'key': 'AustralianStockExchange', 'text': 'Australia'},
@@ -188,11 +188,18 @@ window.addEventListener("load", function() {
           try {
             amount = JSON.parse(this.data.amount);
           } catch(e) {}
-          console.log(data.response.rates);
-          //const text = `<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;"><span>${data.response.query.from} ${parseFloat(amount).toFixed(4)}</span><span>&#8652;</span><span>${data.response.query.to} ${parseFloat(amount * data.response.result).toFixed(4)}</span></div>`;
-          //this.$router.showDialog(`Result as ${data.response.date}`, text, null, 'Close', () => {}, ' ', () => {}, ' ', null, () => {});
+          var lis = [];
+          for (var x in data.response.rates) {
+            lis.push(`<div style="margin:2px 0;display:flex;flex-direction:row;justify-content:space-between;align-items:center;">
+                <div>${this.data.base_unit} ${amount.toFixed(3)}</div>
+                <div>${x} ${(data.response.rates[x] * amount).toFixed(3)}</div>
+              </div>`);
+          }
+          const text = `<div>${lis.join('')}</div>`;
+          this.$router.showDialog(`Result for ${this.data.target_date}`, text, null, 'Close', () => {}, ' ', () => {}, ' ', null, () => {});
         })
         .catch(err => {
+          console.log(err);
           this.$router.showToast('Error');
         })
         .finally(() => {
@@ -244,6 +251,8 @@ window.addEventListener("load", function() {
       selectDate: function() {
         const d = this.data.target_date.split('-');
         this.$router.showDatePicker(parseInt(d[0]), parseInt(d[1]), parseInt(d[2]), (dt) => {
+          if (dt > new Date())
+            return;
           const offset = dt.getTimezoneOffset();
           dt = new Date(dt.getTime() - (offset*60*1000));
           this.data.target_date = dt.toISOString().split('T')[0];
