@@ -104,6 +104,13 @@ const exchangerate = {
   },
   convert: (from, to) => {
     return xhr('GET', 'https://api.exchangerate.host/convert', {}, {from, to});
+  },
+  historical: (base, date) => {
+    var symbols = ['EUR', 'JPY', 'GBP', 'CHF', 'AUD', 'NZD', 'CAD', 'USD'];
+    const idx = symbols.indexOf(base);
+    if (idx > -1)
+      symbols.splice(idx, 1);
+    return xhr('GET', `https://api.exchangerate.host/${date}`, {}, { base, symbols: symbols.join(',') });
   }
 }
 
@@ -143,6 +150,154 @@ window.addEventListener("load", function() {
   });
 
   var TIMEOUT = null;
+
+  const historical = new Kai({
+    name: 'historical',
+    data: {
+      title: 'historical',
+      amount: '',
+      base_unit: '',
+      target_date: '',
+    },
+    verticalNavClass: '.historicalNav',
+    templateUrl: document.location.origin + '/templates/historical.html',
+    mounted: function() {
+      this.$router.setHeaderTitle('Currency Historical Rate');
+      document.getElementById("amount").addEventListener("input", this.methods.amountListener);
+      document.getElementById("base_unit").addEventListener("input", this.methods.fromListener);
+      var dt = new Date();
+      const offset = dt.getTimezoneOffset();
+      dt = new Date(dt.getTime() - (offset*60*1000));
+      this.data.target_date = dt.toISOString().split('T')[0];
+      document.getElementById("target_date").innerHTML = 'Date: ' + this.data.target_date;
+    },
+    unmounted: function() {
+      document.getElementById("amount").removeEventListener("input", this.methods.amountListener);
+      document.getElementById("base_unit").removeEventListener("input", this.methods.fromListener);
+    },
+    methods: {
+      submit: function() {
+        if (this.data.base_unit == '') {
+          this.$router.showDialog('Alert', 'Please select a valid Base unit', null, 'Close', () => {}, ' ', () => {}, ' ', null, () => {});
+          return;
+        }
+        this.$router.showLoading();
+        exchangerate.historical(this.data.base_unit, this.data.target_date)
+        .then(data => {
+          var amount = 1;
+          try {
+            amount = JSON.parse(this.data.amount);
+          } catch(e) {}
+          console.log(data.response.rates);
+          //const text = `<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;"><span>${data.response.query.from} ${parseFloat(amount).toFixed(4)}</span><span>&#8652;</span><span>${data.response.query.to} ${parseFloat(amount * data.response.result).toFixed(4)}</span></div>`;
+          //this.$router.showDialog(`Result as ${data.response.date}`, text, null, 'Close', () => {}, ' ', () => {}, ' ', null, () => {});
+        })
+        .catch(err => {
+          this.$router.showToast('Error');
+        })
+        .finally(() => {
+          this.$router.hideLoading();
+        })
+      },
+      amountListener: function(evt) {
+        this.data.amount = evt.target.value;
+      },
+      search: function(value) {
+        var list = [];
+        for (var i in this.$state.getState('symbols')) {
+          const n = this.$state.getState('symbols')[i];
+          if (n.description.toLowerCase().indexOf(value) > -1 || n.code.toLowerCase().indexOf(value) > -1) {
+            n.text = n.code;
+            n.subtext = n.description;
+            list.push(n);
+          }
+        }
+        return list;
+      },
+      fromListener: function(evt) {
+        if (TIMEOUT) {
+          clearTimeout(TIMEOUT);
+          TIMEOUT = null;
+        }
+        TIMEOUT = setTimeout(() => {
+          TIMEOUT = null;
+          if (this.$router.stack[this.$router.stack.length - 1].name !== 'historical')
+            return;
+          var value = evt.target.value;
+          if (value != '' || value != null) {
+            value = value.toLowerCase();
+            var list = this.methods.search(value);
+            if (list.length <= 0) {
+              if (evt.target.id === 'base_unit')
+                this.data.base_unit = '';
+              this.$router.showDialog('Alert', 'Not Found', null, 'Close', () => {}, ' ', () => {}, ' ', null, () => {});
+              return;
+            }
+            this.$router.showOptionMenu('Currency Unit', list, 'SELECT', (selected) => {
+              evt.target.value = selected.description;
+              if (evt.target.id === 'base_unit')
+                this.data.base_unit = selected.code;
+            }, () => {}, -1);
+          }
+        }, 1000);
+      },
+      selectDate: function() {
+        const d = this.data.target_date.split('-');
+        this.$router.showDatePicker(parseInt(d[0]), parseInt(d[1]), parseInt(d[2]), (dt) => {
+          const offset = dt.getTimezoneOffset();
+          dt = new Date(dt.getTime() - (offset*60*1000));
+          this.data.target_date = dt.toISOString().split('T')[0];
+          document.getElementById("target_date").innerHTML = 'Date: ' + this.data.target_date;
+        }, undefined);
+      }
+    },
+    softKeyText: { left: '', center: '', right: '' },
+    softKeyListener: {
+      left: function() {},
+      center: function() {
+        const listNav = document.querySelectorAll(this.verticalNavClass);
+        if (this.verticalNavIndex > -1) {
+          if (listNav[this.verticalNavIndex]) {
+            listNav[this.verticalNavIndex].click();
+          }
+        }
+      },
+      right: function() {}
+    },
+    softKeyInputFocusText: { left: 'Clear', center: 'NEXT', right: 'Back' },
+    softKeyInputFocusListener: {
+      left: function() {
+        const dom = document.activeElement;
+        switch (dom.id) {
+          case 'amount':
+            document.getElementById("amount").value = '';
+            this.data.amount = '';
+            break;
+          case 'base_unit':
+            document.getElementById("base_unit").value = '';
+            this.data.base_unit = '';
+            break;
+        }
+        if (dom)
+          dom.value = '';
+      },
+      center: function() {
+        this.navigateListNav(1);
+      },
+      right: function() {
+        document.activeElement.blur();
+        this.$router.pop();
+      }
+    },
+    dPadNavListener: {
+      arrowUp: function() {
+        this.navigateListNav(-1);
+      },
+      arrowDown: function() {
+        this.navigateListNav(1);
+      }
+    }
+  });
 
   const convert = new Kai({
     name: 'convert',
@@ -1056,6 +1211,7 @@ window.addEventListener("load", function() {
         var menu = [
           {'text': 'QOTD'},
           {'text': 'Currency Converter'},
+          {'text': 'Currency Historical Rates'},
           {'text': 'Changelogs'},
         ]
         this.$router.showOptionMenu('Menu', menu, 'SELECT', (selected) => {
@@ -1076,6 +1232,8 @@ window.addEventListener("load", function() {
             this.$router.push('changelogs');
           } else if (selected.text == 'Currency Converter') {
             this.$router.push('convert');
+          } else if (selected.text == 'Currency Historical Rates') {
+            this.$router.push('historical');
           }
         }, () => {});
       },
@@ -1122,6 +1280,10 @@ window.addEventListener("load", function() {
       'convert' : {
         name: 'convert',
         component: convert
+      },
+      'historical' : {
+        name: 'historical',
+        component: historical
       },
       'changelogs' : {
         name: 'changelogs',

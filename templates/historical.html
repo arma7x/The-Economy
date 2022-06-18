@@ -1,0 +1,18 @@
+<div class="kui-flex-wrap">
+  <ul class="kui-list kai-container">
+    <li class="kui-divider">
+      <input id="amount" type="tel" class="historicalNav kui-input" style="margin:2%;width:96%;" placeholder="Amount" value=""/>
+    </li>
+    <li class="kui-divider">
+      <input id="base_unit" class="historicalNav kui-input" style="margin:2%;width:96%;" placeholder="Base(Country or unit)" value=""/>
+    </li>
+    <li class="kui-divider historicalNav" @click="selectDate()">
+      <span id="target_date">111</span>
+    </li>
+    <li class="kui-divider historicalNav" style="height:56px;" @click="submit()">
+      <div class="kui-row-center" style="justify-content:space-around;">
+        <h4>GET HISTORICAL RATE</h4>
+      </div>
+    </li>
+  </ul>
+</div>
