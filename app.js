@@ -581,7 +581,7 @@ window.addEventListener("load", function() {
       verticalNavClass: '.' + nav,
       template: `
         <div class="kui-flex-wrap">
-          <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
+          <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}#__kai_tab__{height:calc(100vh - 58px) !important}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
           <ul id="${currency}" class="kui-list kai-container" style="font-size:14px;width:240px;"></ul>
         </div>`
       ,
@@ -620,7 +620,7 @@ window.addEventListener("load", function() {
           this.verticalNavIndex = this.verticalNavIndex - 1;
           this.navigateListNav(1);
         }
-        
+
       },
       unmounted: function() {},
       dPadNavListener: {
@@ -894,7 +894,7 @@ window.addEventListener("load", function() {
         }
       },
       unmounted: function() {
-        
+
       },
       dPadNavListener: {
         arrowLeft: function() {
@@ -958,7 +958,7 @@ window.addEventListener("load", function() {
       }
     },
     unmounted: function() {
-      
+
     },
     methods: {
       selected: function(val) {
