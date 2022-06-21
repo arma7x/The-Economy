@@ -1,4 +1,4 @@
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.3.1";
 
 const rankingSet = [
   { 'key': 'AustralianStockExchange', 'text': 'Australia'},
@@ -559,7 +559,7 @@ window.addEventListener("load", function() {
     verticalNavClass: '.rateNav',
     template: `
       <div class="kui-flex-wrap">
-      <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
+      <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}#__kai_tab__{height:calc(100vh - 58px) !important}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
       <ul class="kui-list kai-container">
         {{#rates}}
         <li class="rateNav kui-divider">
@@ -620,7 +620,7 @@ window.addEventListener("load", function() {
     verticalNavClass: '.rateNav',
     template: `
       <div class="kui-flex-wrap">
-      <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
+      <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}#__kai_tab__{height:calc(100vh - 58px) !important}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
       <ul class="kui-list kai-container">
         {{#rates}}
         <li class="rateNav kui-divider">
@@ -679,7 +679,7 @@ window.addEventListener("load", function() {
     verticalNavClass: '.rateNav',
     template: `
       <div class="kui-flex-wrap">
-      <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
+      <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}#__kai_tab__{height:calc(100vh - 58px) !important}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
       <ul class="kui-list kai-container">
         {{#rates}}
         <li class="rateNav kui-divider">
