@@ -816,7 +816,7 @@ window.addEventListener("load", function() {
     return Kai.createTabNav('currencyTab', '.currencyTabNav', tabs);
   }
 
-  const equitiesPage = function($router, rankingSet, rankingType, title) {
+  const equityQuotePage = function($router, rankingSet, rankingType, title) {
     $router.showLoading();
     xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/equities', {}, {'rankingType': rankingType, 'rankingSet': rankingSet})
     .then((ok) => {
@@ -830,18 +830,18 @@ window.addEventListener("load", function() {
       });
       $router.push(
         new Kai({
-          name: 'equities',
+          name: 'equityQuotePage',
           data: {
-            title: 'equities',
+            title: 'equityQuotePage',
             data: data,
           },
-          verticalNavClass: '.equityNav',
+          verticalNavClass: '.equityQuoteNav',
           template: `
             <div class="kui-flex-wrap">
               <style>.kui-software-key{height:0px}#__kai_router__{height:266px!important;}.kui-router-m-bottom{margin-bottom:0px!important;}</style>
               <ul class="kui-list kai-container">
                 {{#data}}
-                <li class="equityNav kui-divider">
+                <li class="equityQuoteNav kui-divider">
                   <div style="width:100%;">
                     <div><h5>{{ _listing }}</h5></div>
                     <div style="margin: 0px 0 2px 0px;"><small>Change: <b>{{ _change }}</b></small></div>
@@ -856,11 +856,6 @@ window.addEventListener("load", function() {
             </div>`,
           mounted: function() {
             $router.setHeaderTitle(title);
-            setTimeout(() => {
-              const t = document.getElementById('__kai_tab__');
-              t.classList.remove('kui-tab-h-88');
-              t.classList.add('kui-tab-h-60');
-            }, 100);
           },
           unmounted: function() {},
           methods: {},
@@ -1208,7 +1203,7 @@ window.addEventListener("load", function() {
         this.$router.showOptionMenu('Market', rankingSet, 'SELECT', (selected) => {
           setTimeout(() => {
             this.$router.showOptionMenu('Type', rankingType, 'SELECT', (selected2) => {
-              equitiesPage(this.$router, selected.key, selected2.key, `${selected.text} - ${selected2.text}`);
+              equityQuotePage(this.$router, selected.key, selected2.key, `${selected.text} - ${selected2.text}`);
             }, undefined, -1);
           }, 100);
         }, undefined, -1);
