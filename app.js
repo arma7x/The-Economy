@@ -253,8 +253,8 @@ window.addEventListener("load", function() {
         this.$router.showDatePicker(parseInt(d[0]), parseInt(d[1]), parseInt(d[2]), (dt) => {
           if (dt > new Date())
             return;
-          const offset = dt.getTimezoneOffset();
-          dt = new Date(dt.getTime() - (offset*60*1000));
+          // const offset = (dt.getTimezoneOffset() *60 * 1000);
+          dt = new Date(dt.getTime());
           this.data.target_date = dt.toISOString().split('T')[0];
           document.getElementById("target_date").innerHTML = 'Date: ' + this.data.target_date;
         }, undefined);
