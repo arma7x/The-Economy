@@ -1,6 +1,6 @@
-const APP_VERSION = "1.3.1";
+const APP_VERSION = "1.3.0";
 
-const rankingSet = [
+const rankingSets = [
   { 'key': 'AustralianStockExchange', 'text': 'Australia'},
   { 'key': 'BrusselsStockExchange', 'text': 'Belgium'},
   { 'key': 'SaoPauloStockExchange', 'text': 'Brazil'},
@@ -31,7 +31,7 @@ const rankingSet = [
   { 'key': 'SP500', 'text': 'United States'},
 ];
 
-const rankingType = [
+const rankingTypes = [
   { 'key': 'percentgainers', 'text': 'Gainers' },
   { 'key': 'percentlosers', 'text': 'Losers' },
   { 'key': 'highestvolume', 'text': 'Movers' }
@@ -889,6 +889,63 @@ window.addEventListener("load", function() {
     })
   }
 
+  const equities = new Kai({
+    name: 'equities',
+    data: {
+      title: 'equities',
+      data: rankingSets,
+    },
+    verticalNavClass: '.equitiesNav',
+    template: `
+      <div class="kui-flex-wrap">
+        <ul class="kui-list kai-container">
+          {{#data}}
+          <li class="equitiesNav kui-divider">
+            <div>
+            <pre>{{ text }}</pre>
+              <small><pre>{{ key }}</pre></small>
+            </div>
+          </li>
+          {{/data}}
+        </ul>
+      </div>`,
+    mounted: function() {
+      this.$router.setHeaderTitle('Equities');
+    },
+    unmounted: function() {},
+    methods: {},
+    softKeyText: { left: 'Losers', center: 'Gainers', right: 'Movers' },
+    softKeyListener: {
+      left: function() {
+        if (rankingSets[this.verticalNavIndex]) {
+          equityQuotePage(this.$router, rankingSets[this.verticalNavIndex].key, 'percentlosers', `${rankingSets[this.verticalNavIndex].text} - Losers`);
+        }
+      },
+      center: function() {
+        if (rankingSets[this.verticalNavIndex]) {
+          equityQuotePage(this.$router, rankingSets[this.verticalNavIndex].key, 'percentgainers', `${rankingSets[this.verticalNavIndex].text} - Gainers`);
+        }
+      },
+      right: function() {
+        if (rankingSets[this.verticalNavIndex]) {
+          equityQuotePage(this.$router, rankingSets[this.verticalNavIndex].key, 'highestvolume', `${rankingSets[this.verticalNavIndex].text} - Movers`);
+        }
+      }
+    },
+    dPadNavListener: {
+      arrowUp: function() {
+        if (this.verticalNavIndex <= 0)
+          return
+        this.navigateListNav(-1);
+      },
+      arrowDown: function() {
+        if (this.verticalNavIndex === rankingSets.length - 1)
+          return
+        this.navigateListNav(1);
+      }
+    }
+  });
+
   const getGovBondsSpreadsPage = function($router, data) {
     data.forEach((d) => {
       d.country = d['Country']
@@ -1200,13 +1257,7 @@ window.addEventListener("load", function() {
         })
       },
       gotoEquities: function() {
-        this.$router.showOptionMenu('Market', rankingSet, 'SELECT', (selected) => {
-          setTimeout(() => {
-            this.$router.showOptionMenu('Type', rankingType, 'SELECT', (selected2) => {
-              equityQuotePage(this.$router, selected.key, selected2.key, `${selected.text} - ${selected2.text}`);
-            }, undefined, -1);
-          }, 100);
-        }, undefined, -1);
+        this.$router.push('equities');
       }
     },
     softKeyText: { left: 'Menu', center: 'SELECT', right: 'Exit' },
@@ -1288,6 +1339,10 @@ window.addEventListener("load", function() {
       'historical' : {
         name: 'historical',
         component: historical
+      },
+      'equities' : {
+        name: 'equities',
+        component: equities
       },
       'changelogs' : {
         name: 'changelogs',
