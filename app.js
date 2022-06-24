@@ -166,8 +166,8 @@ window.addEventListener("load", function() {
       document.getElementById("amount").addEventListener("input", this.methods.amountListener);
       document.getElementById("base_unit").addEventListener("input", this.methods.fromListener);
       var dt = new Date();
-      const offset = dt.getTimezoneOffset();
-      dt = new Date(dt.getTime() - (offset*60*1000));
+      // const offset = (dt.getTimezoneOffset() *60 * 1000);
+      dt = new Date(dt.getTime());
       this.data.target_date = dt.toISOString().split('T')[0];
       document.getElementById("target_date").innerHTML = 'Date: ' + this.data.target_date;
     },
