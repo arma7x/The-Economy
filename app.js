@@ -166,8 +166,8 @@ window.addEventListener("load", function() {
       document.getElementById("amount").addEventListener("input", this.methods.amountListener);
       document.getElementById("base_unit").addEventListener("input", this.methods.fromListener);
       var dt = new Date();
-      // const offset = (dt.getTimezoneOffset() *60 * 1000);
-      dt = new Date(dt.getTime());
+      const offset = (dt.getTimezoneOffset() * 60 * 1000);
+      dt = new Date(dt.getTime() - offset);
       this.data.target_date = dt.toISOString().split('T')[0];
       document.getElementById("target_date").innerHTML = 'Date: ' + this.data.target_date;
     },
@@ -182,7 +182,10 @@ window.addEventListener("load", function() {
           return;
         }
         this.$router.showLoading();
-        exchangerate.historical(this.data.base_unit, this.data.target_date)
+        let today = new Date(new Date(this.data.target_date).setHours(0));
+        let time_ms = new Date().getTime() - today.getTime();
+        today = new Date(today.getTime() + time_ms);
+        exchangerate.historical(this.data.base_unit, today.toISOString().split('T')[0])
         .then(data => {
           var amount = 1;
           try {
@@ -253,8 +256,8 @@ window.addEventListener("load", function() {
         this.$router.showDatePicker(parseInt(d[0]), parseInt(d[1]), parseInt(d[2]), (dt) => {
           if (dt > new Date())
             return;
-          // const offset = (dt.getTimezoneOffset() *60 * 1000);
-          dt = new Date(dt.getTime());
+          const offset = (dt.getTimezoneOffset() * 60 * 1000);
+          dt = new Date(dt.getTime() - offset);
           this.data.target_date = dt.toISOString().split('T')[0];
           document.getElementById("target_date").innerHTML = 'Date: ' + this.data.target_date;
         }, undefined);
