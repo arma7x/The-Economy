@@ -182,10 +182,11 @@ window.addEventListener("load", function() {
           return;
         }
         this.$router.showLoading();
-        let today = new Date(new Date(this.data.target_date).setHours(0));
-        let time_ms = new Date().getTime() - today.getTime();
-        today = new Date(today.getTime() + time_ms);
-        exchangerate.historical(this.data.base_unit, today.toISOString().split('T')[0])
+        let today = new Date();
+        let target = new Date(new Date(this.data.target_date).setHours(0));
+        let time_ms = today.getTime() - today.setHours(0);
+        target = new Date(target.getTime() + time_ms);
+        exchangerate.historical(this.data.base_unit, target.toISOString().split('T')[0])
         .then(data => {
           var amount = 1;
           try {
