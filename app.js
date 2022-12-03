@@ -104,7 +104,7 @@ const exchangerate = {
   },
   convert: (from, to) => {
     var dt = new Date();
-    const offset = (dt.getTimezoneOffset() * 60 * 1000);
+    var offset = -(dt.getTimezoneOffset() * 60 * 1000);
     dt = new Date(dt.getTime() - offset);
     var date = dt.toISOString().split('T')[0];
     return xhr('GET', 'https://api.exchangerate.host/convert', {}, {from, to, date});
@@ -186,11 +186,9 @@ window.addEventListener("load", function() {
           return;
         }
         this.$router.showLoading();
-        let today = new Date();
-        let target = new Date(new Date(this.data.target_date).setHours(0));
-        let time_ms = today.getTime() - today.setHours(0);
-        target = new Date(target.getTime() + time_ms);
-        exchangerate.historical(this.data.base_unit, target.toISOString().split('T')[0])
+        let utc = new Date().toISOString().split('T')[0];
+        let today = utc < this.data.target_date ? utc : this.data.target_date;
+        exchangerate.historical(this.data.base_unit, today)
         .then(data => {
           var amount = 1;
           try {
@@ -356,7 +354,7 @@ window.addEventListener("load", function() {
             amount = JSON.parse(this.data.amount);
           } catch(e) {}
           const text = `<div style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;"><span>${data.response.query.from} ${parseFloat(amount).toFixed(4)}</span><span>&#8652;</span><span>${data.response.query.to} ${parseFloat(amount * data.response.result).toFixed(4)}</span></div>`;
-          this.$router.showDialog(`Result as ${data.response.date}`, text, null, 'Close', () => {}, ' ', () => {}, ' ', null, () => {});
+          this.$router.showDialog(`Result(UTC) as ${data.response.date}`, text, null, 'Close', () => {}, ' ', () => {}, ' ', null, () => {});
         })
         .catch(err => {
           this.$router.showToast('Error');
