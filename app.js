@@ -1,4 +1,4 @@
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.3.3";
 
 const rankingSets = [
   { 'key': 'AustralianStockExchange', 'text': 'Australia'},
@@ -103,7 +103,11 @@ const exchangerate = {
     return xhr('GET', 'https://api.exchangerate.host/symbols');
   },
   convert: (from, to) => {
-    return xhr('GET', 'https://api.exchangerate.host/convert', {}, {from, to});
+    var dt = new Date();
+    const offset = (dt.getTimezoneOffset() * 60 * 1000);
+    dt = new Date(dt.getTime() - offset);
+    var date = dt.toISOString().split('T')[0];
+    return xhr('GET', 'https://api.exchangerate.host/convert', {}, {from, to, date});
   },
   historical: (base, date) => {
     var symbols = ['EUR', 'JPY', 'GBP', 'CHF', 'AUD', 'NZD', 'CAD', 'USD'];
@@ -164,7 +168,7 @@ window.addEventListener("load", function() {
     mounted: function() {
       this.$router.setHeaderTitle('Currency Historical Rate');
       document.getElementById("amount").addEventListener("input", this.methods.amountListener);
-      document.getElementById("base_unit").addEventListener("input", this.methods.fromListener);
+      document.getElementById("base_unit").addEventListener("input", this.methods.unitListener);
       var dt = new Date();
       const offset = (dt.getTimezoneOffset() * 60 * 1000);
       dt = new Date(dt.getTime() - offset);
@@ -173,7 +177,7 @@ window.addEventListener("load", function() {
     },
     unmounted: function() {
       document.getElementById("amount").removeEventListener("input", this.methods.amountListener);
-      document.getElementById("base_unit").removeEventListener("input", this.methods.fromListener);
+      document.getElementById("base_unit").removeEventListener("input", this.methods.unitListener);
     },
     methods: {
       submit: function() {
@@ -225,16 +229,17 @@ window.addEventListener("load", function() {
         }
         return list;
       },
-      fromListener: function(evt) {
+      unitListener: function(evt) {
         if (TIMEOUT) {
           clearTimeout(TIMEOUT);
           TIMEOUT = null;
         }
+        var value = evt.target.value;
+        if (value == '' || value == null)
+          return;
         TIMEOUT = setTimeout(() => {
-          TIMEOUT = null;
           if (this.$router.stack[this.$router.stack.length - 1].name !== 'historical')
             return;
-          var value = evt.target.value;
           if (value != '' || value != null) {
             value = value.toLowerCase();
             var list = this.methods.search(value);
@@ -248,6 +253,10 @@ window.addEventListener("load", function() {
               evt.target.value = selected.description;
               if (evt.target.id === 'base_unit')
                 this.data.base_unit = selected.code;
+              if (TIMEOUT) {
+                clearTimeout(TIMEOUT);
+                TIMEOUT = null;
+              }
             }, () => {}, -1);
           }
         }, 1000);
@@ -325,13 +334,13 @@ window.addEventListener("load", function() {
     mounted: function() {
       this.$router.setHeaderTitle('Currency Converter');
       document.getElementById("amount").addEventListener("input", this.methods.amountListener);
-      document.getElementById("from_unit").addEventListener("input", this.methods.fromListener);
-      document.getElementById("to_unit").addEventListener("input", this.methods.fromListener);
+      document.getElementById("from_unit").addEventListener("input", this.methods.unitListener);
+      document.getElementById("to_unit").addEventListener("input", this.methods.unitListener);
     },
     unmounted: function() {
       document.getElementById("amount").removeEventListener("input", this.methods.amountListener);
-      document.getElementById("from_unit").removeEventListener("input", this.methods.fromListener);
-      document.getElementById("to_unit").removeEventListener("input", this.methods.fromListener);
+      document.getElementById("from_unit").removeEventListener("input", this.methods.unitListener);
+      document.getElementById("to_unit").removeEventListener("input", this.methods.unitListener);
     },
     methods: {
       submit: function() {
@@ -371,16 +380,17 @@ window.addEventListener("load", function() {
         }
         return list;
       },
-      fromListener: function(evt) {
+      unitListener: function(evt) {
         if (TIMEOUT) {
           clearTimeout(TIMEOUT);
           TIMEOUT = null;
         }
+        var value = evt.target.value;
+        if (value == '' || value == null)
+          return;
         TIMEOUT = setTimeout(() => {
-          TIMEOUT = null;
           if (this.$router.stack[this.$router.stack.length - 1].name !== 'convert')
             return;
-          var value = evt.target.value;
           if (value != '' || value != null) {
             value = value.toLowerCase();
             var list = this.methods.search(value);
@@ -398,6 +408,10 @@ window.addEventListener("load", function() {
                 this.data.from_unit = selected.code;
               else if (evt.target.id === 'to_unit')
                 this.data.to_unit = selected.code;
+              if (TIMEOUT) {
+                clearTimeout(TIMEOUT);
+                TIMEOUT = null;
+              }
             }, () => {}, -1);
           }
         }, 1000);
@@ -822,7 +836,7 @@ window.addEventListener("load", function() {
 
   const equityQuotePage = function($router, rankingSet, rankingType, title) {
     $router.showLoading();
-    xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/equities', {}, {'rankingType': rankingType, 'rankingSet': rankingSet})
+    xhr('GET', 'https://malaysiaapi-arma7x.koyeb.app/ft/api/v1/equities', {}, {'rankingType': rankingType, 'rankingSet': rankingSet})
     .then((ok) => {
       const data = []
       ok.response.data.forEach((i) => {
@@ -1169,7 +1183,7 @@ window.addEventListener("load", function() {
         } catch (e) {}
       }).catch(e=>{});
       this.$router.setHeaderTitle('The Economy');
-      xhr('GET', 'https://malaysiaapi.herokuapp.com');
+      xhr('GET', 'https://malaysiaapi-arma7x.koyeb.app');
       const CURRENT_VERSION = window.localStorage.getItem('APP_VERSION');
       if (APP_VERSION != CURRENT_VERSION) {
         this.$router.showToast(`Updated to version ${APP_VERSION}`);
@@ -1186,7 +1200,7 @@ window.addEventListener("load", function() {
       },
       getCommodities: function() {
         this.$router.showLoading();
-        xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/commodities')
+        xhr('GET', 'https://malaysiaapi-arma7x.koyeb.app/ft/api/v1/commodities')
         .then((ok) => {
           this.$state.setState('commodities', ok.response.data);
           this.$router.setHeaderTitle('Commodities Price');
@@ -1203,7 +1217,7 @@ window.addEventListener("load", function() {
       getCurrencies: function(val) {
         var vals = val.split('|');
         this.$router.showLoading();
-        xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/currencies', {}, {'group': vals[0]})
+        xhr('GET', 'https://malaysiaapi-arma7x.koyeb.app/ft/api/v1/currencies', {}, {'group': vals[0]})
         .then((ok) => {
           this.$router.setHeaderTitle(vals[1]);
           this.$router.push(createCurrencyTab(ok.response.data));
@@ -1232,7 +1246,7 @@ window.addEventListener("load", function() {
       },
       getBondAndRates: function() {
         this.$router.showLoading();
-        xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/bondsandrates')
+        xhr('GET', 'https://malaysiaapi-arma7x.koyeb.app/ft/api/v1/bondsandrates')
         .then((ok) => {
           this.$state.setState('bondandrates', ok.response.data);
           this.$router.setHeaderTitle('Bond And Rates');
@@ -1248,7 +1262,7 @@ window.addEventListener("load", function() {
       },
       getGovBondsSpreads: function() {
         this.$router.showLoading();
-        xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/governmentbondsspreads')
+        xhr('GET', 'https://malaysiaapi-arma7x.koyeb.app/ft/api/v1/governmentbondsspreads')
         .then((ok) => {
           getGovBondsSpreadsPage(this.$router, ok.response.data);
         })
@@ -1276,7 +1290,7 @@ window.addEventListener("load", function() {
         this.$router.showOptionMenu('Menu', menu, 'SELECT', (selected) => {
           if (selected.text === 'QOTD') {
             this.$router.showLoading();
-            xhr('GET', 'https://malaysiaapi.herokuapp.com/ft/api/v1/qotd')
+            xhr('GET', 'https://malaysiaapi-arma7x.koyeb.app/ft/api/v1/qotd')
             .then((ok) => {
               this.$router.showDialog('QOTD', `${ok.response.data[0]}<br><b>-${ok.response.data[1]}</b>`, null, 'Close', () => {}, ' ', () => {}, ' ', () => {}, () => {});
             })
