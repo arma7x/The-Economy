@@ -24,14 +24,13 @@
     }
   ],
   "b2g_features": {
-    "version": "3.3.3",
+    "version": "3.3.4",
     "type": "web",
     "default_locale": "en-US",
     "developer": {
       "name": "arma7x",
       "url": "https://www.kaiostech.com"
     },
-    "origin": "the-economy",
     "permissions": {},
     "dependencies": {
       "ads-sdk": "1.5.3"
